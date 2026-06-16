@@ -135,39 +135,35 @@ function DrawArrow({ color = C.orange }: { color?: string }) {
 // ─── Hero curved scroll indicator ──────────────────────────────
 function HeroCurvedArrow({ color = C.orange }: { color?: string }) {
   return (
-    <motion.div
-      animate={{ y: [0, 10, 0] }}
-      transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 4.5 }}
+    <svg
+      viewBox="0 0 540 158"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{
+        width: "clamp(200px, 38vw, 520px)",
+        height: "auto",
+        overflow: "visible",
+        filter: `drop-shadow(0 0 7px ${color}55)`,
+      }}
     >
-      <svg
-        viewBox="0 0 60 200"
+      {/* Starts below CTA (left), arcs up and sweeps right, curves down toward center of MOST PEOPLE */}
+      <path
+        d="M 12 36 C 100 4 310 14 428 72 C 490 106 530 126 526 150"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinecap="round"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ width: 42, height: 156 }}
-      >
-        <motion.path
-          d="M 30 6 C 50 34 12 60 34 92 C 52 118 16 144 30 168"
-          stroke={color}
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 2.4, ease: "easeInOut", delay: 1.8 }}
-        />
-        <motion.path
-          d="M 18 157 L 30 171 L 42 157"
-          stroke={color}
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 4.0 }}
-        />
-      </svg>
-    </motion.div>
+      />
+      {/* Downward arrowhead at tip */}
+      <path
+        d="M 512 137 L 526 152 L 538 137"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
   );
 }
 
@@ -265,93 +261,96 @@ function Hero() {
   }, []);
 
   return (
-    <section
-      className="relative min-h-screen flex flex-col justify-center items-center"
-    >
+    <section className="relative min-h-screen flex flex-col justify-center items-start">
 
-      <div className="relative z-10 w-full px-4 md:px-8 text-center">
-        {/* Main wordmark */}
-        <div className="overflow-hidden">
-          <motion.h1
-            initial={{ y: "110%", opacity: 0 }}
-            animate={ready ? { y: "0%", opacity: 1 } : {}}
-            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="leading-none w-full"
+      <div
+        className="relative z-10 w-full px-6 md:px-16 lg:px-24"
+        style={{ marginTop: "-6vh" }}
+      >
+        {/* Content constrained to left ~half on desktop, full-width on mobile */}
+        <div className="w-full md:max-w-[52%]">
+
+          {/* Main headline — two lines */}
+          <div className="overflow-hidden">
+            <motion.h1
+              initial={{ y: "110%", opacity: 0 }}
+              animate={ready ? { y: "0%", opacity: 1 } : {}}
+              transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+              className="leading-none uppercase"
+              style={{
+                ...DISPLAY,
+                fontSize: "clamp(3.2rem, 7.5vw, 10rem)",
+                color: C.cream,
+                textTransform: "uppercase",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              For people who
+              <br />
+              refuse average.
+            </motion.h1>
+          </div>
+
+          {/* Divider */}
+          <motion.div
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={ready ? { scaleX: 1, opacity: 1 } : {}}
+            transition={{ duration: 0.9, ease: "easeOut", delay: 0.5 }}
+            className="my-7"
             style={{
-              ...DISPLAY,
-              fontSize: "clamp(3.2rem, 14.5vw, 15rem)",
-              color: C.cream,
-              textTransform: "uppercase",
-              letterSpacing: "-0.015em",
+              height: "1px",
+              maxWidth: "280px",
+              backgroundColor: `rgba(255,91,46,0.4)`,
+              transformOrigin: "left",
             }}
+          />
+
+          {/* Tagline */}
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            animate={ready ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.75, ease: "easeOut", delay: 0.65 }}
+            className="text-base md:text-xl font-medium tracking-[0.18em] uppercase"
+            style={{ color: C.orange, ...SANS }}
           >
-            THE GENZ WAY
-          </motion.h1>
+            Build. Connect. Ship. Repeat.
+          </motion.p>
+
+          {/* Three supporting lines */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={ready ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.9 }}
+            className="mt-5 flex flex-col gap-2"
+            style={{ color: C.muted, ...SANS }}
+          >
+            <p className="text-sm md:text-base">Find ambitious people.</p>
+            <p className="text-sm md:text-base">Build meaningful things.</p>
+            <p className="text-sm md:text-base">Leave your mark.</p>
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={ready ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.65, delay: 1.1 }}
+            className="mt-10"
+          >
+            <a
+              href="#"
+              className="inline-flex items-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
+              style={{
+                backgroundColor: C.orange,
+                color: C.bg,
+                boxShadow: `0 0 48px rgba(255,91,46,0.35)`,
+                ...SANS,
+              }}
+            >
+              Join The Movement <span>→</span>
+            </a>
+          </motion.div>
+
         </div>
-
-        {/* Divider line */}
-        <motion.div
-          initial={{ scaleX: 0, opacity: 0 }}
-          animate={ready ? { scaleX: 1, opacity: 1 } : {}}
-          transition={{ duration: 0.9, ease: "easeOut", delay: 0.5 }}
-          className="my-6 mx-auto"
-          style={{
-            height: "1px",
-            maxWidth: "340px",
-            backgroundColor: `rgba(255,91,46,0.4)`,
-            transformOrigin: "left",
-          }}
-        />
-
-        {/* Tagline */}
-        <motion.p
-          initial={{ opacity: 0, y: 18 }}
-          animate={ready ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.75, ease: "easeOut", delay: 0.65 }}
-          className="text-lg md:text-2xl font-medium tracking-[0.14em] uppercase"
-          style={{ color: C.orange, ...SANS }}
-        >
-          Build. Connect. Ship. Repeat.
-        </motion.p>
-
-        {/* Subline */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={ready ? { opacity: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.9 }}
-          className="mt-3 text-sm md:text-base max-w-sm mx-auto"
-          style={{ color: C.muted, ...SANS }}
-        >
-          For people who would rather create than consume.
-        </motion.p>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={ready ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.65, delay: 1.15 }}
-          className="mt-10 flex flex-wrap gap-4 justify-center items-center"
-        >
-          <a
-            href="#"
-            className="inline-flex items-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
-            style={{
-              backgroundColor: C.orange,
-              color: C.bg,
-              boxShadow: `0 0 48px rgba(255,91,46,0.35)`,
-              ...SANS,
-            }}
-          >
-            Join The Movement <span>→</span>
-          </a>
-          <a
-            href="#"
-            className="text-sm tracking-widest uppercase opacity-50 hover:opacity-80 transition-opacity"
-            style={{ color: C.cream, ...SANS }}
-          >
-            See Projects ↓
-          </a>
-        </motion.div>
       </div>
 
       {/* Curved scroll indicator */}
@@ -359,7 +358,7 @@ function Hero() {
         initial={{ opacity: 0 }}
         animate={ready ? { opacity: 1 } : {}}
         transition={{ delay: 1.5, duration: 0.6 }}
-        className="absolute bottom-14 left-1/2 -translate-x-1/2"
+        className="absolute bottom-14 left-6 md:left-16 lg:left-24"
       >
         <HeroCurvedArrow />
       </motion.div>
@@ -609,174 +608,7 @@ function WhoSection() {
   );
 }
 
-// ─── Section 5: How It Works ────────────────────────────────────
-const STEPS = [
-  {
-    num: "01",
-    label: "Find Builders",
-    desc: "Discover people with complementary skills and shared ambitions who actually ship.",
-  },
-  {
-    num: "02",
-    label: "Share Ideas",
-    desc: "Post your vision publicly. Get real feedback. Refine it with people who care.",
-  },
-  {
-    num: "03",
-    label: "Join Projects",
-    desc: "Plug into live builds or start something new. No barriers. No gatekeeping.",
-  },
-  {
-    num: "04",
-    label: "Build Together",
-    desc: "Commit, collaborate, and create with people who turn ideas into products.",
-  },
-  {
-    num: "05",
-    label: "Launch",
-    desc: "Get your work in front of real users within a community built for builders.",
-  },
-  {
-    num: "06",
-    label: "Repeat",
-    desc: "Every launch is a new beginning. Keep building. Keep shipping. Keep growing.",
-  },
-];
-
-function HowItWorks() {
-  const { ref, inView } = useReveal({ amount: 0.08 });
-
-  return (
-    <section
-      ref={ref}
-      className="px-6 md:px-16 lg:px-24 py-24 md:py-40 relative overflow-hidden"
-    >
-      <div className="max-w-4xl mx-auto">
-        <motion.h2
-          initial={{ opacity: 0, y: 40 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="leading-none uppercase mb-20 md:mb-32"
-          style={{
-            ...DISPLAY,
-            fontSize: "clamp(2rem, 6.5vw, 7rem)",
-            color: C.cream,
-          }}
-        >
-          BUILD WITH PEOPLE.{" "}
-          <br />
-          <span style={{ color: C.orange }}>NOT ALGORITHMS.</span>
-        </motion.h2>
-
-        <div className="relative pl-10 md:pl-16">
-          {/* Vertical timeline line */}
-          <motion.div
-            className="absolute left-0 top-0 bottom-0 w-px"
-            style={{ backgroundColor: `rgba(255,91,46,0.18)`, transformOrigin: "top" }}
-            initial={{ scaleY: 0 }}
-            animate={inView ? { scaleY: 1 } : {}}
-            transition={{ duration: 2, ease: "easeOut", delay: 0.3 }}
-          />
-
-          <div className="flex flex-col gap-16 md:gap-20">
-            {STEPS.map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ opacity: 0, x: -28 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.2 + i * 0.13 }}
-                className="relative"
-              >
-                {/* Timeline dot */}
-                <div
-                  className="absolute -left-10 md:-left-16 top-2 w-3 h-3 rounded-full"
-                  style={{
-                    backgroundColor: C.orange,
-                    boxShadow: `0 0 14px ${C.glow}, 0 0 28px rgba(255,91,46,0.3)`,
-                  }}
-                />
-
-                <p
-                  className="text-xs tracking-[0.25em] uppercase mb-2"
-                  style={{ color: C.orange, ...SANS }}
-                >
-                  {step.num}
-                </p>
-                <h3
-                  className="leading-none uppercase mb-3"
-                  style={{
-                    ...DISPLAY,
-                    fontSize: "clamp(1.8rem, 4.2vw, 4.5rem)",
-                    color: C.cream,
-                  }}
-                >
-                  {step.label}
-                </h3>
-                <p
-                  className="text-sm md:text-base leading-relaxed max-w-sm"
-                  style={{ color: C.muted, ...SANS }}
-                >
-                  {step.desc}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ─── Section 6: Network Effect ──────────────────────────────────
-function NetworkEffect() {
-  const { ref, inView } = useReveal({ amount: 0.3 });
-  const lines = ["YOUR NEXT COFOUNDER", "MIGHT BE", "ONE SCROLL AWAY."];
-
-  return (
-    <section
-      ref={ref}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden px-6"
-    >
-      {/* Pulsing glow */}
-      <motion.div
-        className="absolute pointer-events-none"
-        style={{
-          width: "75vw",
-          height: "75vh",
-          background: `radial-gradient(ellipse, rgba(255,91,46,0.09) 0%, rgba(255,138,61,0.04) 50%, transparent 70%)`,
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-        }}
-        animate={{ scale: [1, 1.12, 1], opacity: [0.5, 0.85, 0.5] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      <div className="relative z-10 text-center">
-        {lines.map((line, i) => (
-          <motion.p
-            key={line}
-            initial={{ opacity: 0, y: 50 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: i * 0.22 }}
-            className="leading-none uppercase"
-            style={{
-              ...DISPLAY,
-              fontSize:
-                i === 1
-                  ? "clamp(1.6rem, 5vw, 5.5rem)"
-                  : "clamp(2rem, 8.5vw, 9.5rem)",
-              color: i === 1 ? C.muted : C.cream,
-            }}
-          >
-            {line}
-          </motion.p>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 // ─── Section 7: Projects ────────────────────────────────────────
 const PROJECTS = [
   {
@@ -927,56 +759,6 @@ function Projects() {
                 <span style={{ opacity: 0.4 }}>·</span>
                 <span style={{ color: C.orange }}>{proj.stage}</span>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Section 8: Stats ───────────────────────────────────────────
-const STATS = [
-  { num: 500, suffix: "+", label: "Builders" },
-  { num: 150, suffix: "+", label: "Projects" },
-  { num: 50, suffix: "+", label: "Collaborations" },
-  { num: 20, suffix: "+", label: "Countries" },
-];
-
-function Stats() {
-  const { ref, inView } = useReveal({ amount: 0.3 });
-
-  return (
-    <section
-      ref={ref}
-      className="py-24 md:py-40 px-6 md:px-16 lg:px-24 relative overflow-hidden"
-    >
-      <div className="max-w-screen-xl mx-auto relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-6">
-          {STATS.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 40 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.75, delay: i * 0.12 }}
-              className="text-center"
-            >
-              <div
-                className="leading-none block mb-3"
-                style={{
-                  ...DISPLAY,
-                  fontSize: "clamp(3.5rem, 11vw, 10rem)",
-                  color: C.cream,
-                }}
-              >
-                <Counter target={s.num} suffix={s.suffix} inView={inView} />
-              </div>
-              <p
-                className="text-xs uppercase tracking-[0.22em]"
-                style={{ color: C.muted, ...SANS }}
-              >
-                {s.label}
-              </p>
             </motion.div>
           ))}
         </div>
@@ -1388,10 +1170,7 @@ export default function Page() {
       <Manifesto />
       <Problem />
       <WhoSection />
-      <HowItWorks />
-      <NetworkEffect />
       <Projects />
-      <Stats />
       <ExperimentalType />
       <Testimonials />
       <CTASection />

@@ -34,6 +34,8 @@
 
   body {
     background-color: #080808;
+    background-image: radial-gradient(ellipse 65% 55% at 50% 45%, rgba(255,91,46,0.07) 0%, transparent 65%);
+    background-attachment: fixed;
     color: #f5f2eb;
     overflow-x: hidden;
     margin: 0;

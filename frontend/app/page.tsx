@@ -11,7 +11,7 @@ const C = {
   cream: "#F5F2EB",
   muted: "#8C8C8C",
   bg: "#080808",
-  bg2: "#111111",
+  bg2: "#080808",
 };
 
 // ─── Typography style objects ───────────────────────────────────
@@ -213,28 +213,8 @@ function Hero() {
 
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden"
-      style={{ backgroundColor: C.bg }}
+      className="relative min-h-screen flex flex-col justify-center items-center"
     >
-      {/* Atmospheric glow layers */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse 90% 55% at 50% 75%, rgba(255,91,46,0.16) 0%, rgba(255,138,61,0.07) 45%, transparent 70%)`,
-        }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse 50% 35% at 50% 95%, rgba(255,91,46,0.13) 0%, transparent 65%)`,
-        }}
-      />
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse 30% 20% at 20% 40%, rgba(199,67,67,0.06) 0%, transparent 60%)`,
-        }}
-      />
 
       <div className="relative z-10 w-full px-4 md:px-8 text-center">
         {/* Main wordmark */}
@@ -342,7 +322,6 @@ function Manifesto() {
     <section
       ref={ref}
       className="min-h-screen flex flex-col justify-center relative overflow-hidden"
-      style={{ backgroundColor: C.bg }}
     >
       <div className="px-6 md:px-16 lg:px-24 max-w-screen-xl mx-auto w-full">
         <motion.div
@@ -416,16 +395,7 @@ function Problem() {
     <section
       ref={ref}
       className="min-h-screen flex flex-col justify-center px-6 md:px-16 lg:px-24 relative overflow-hidden"
-      style={{ backgroundColor: C.bg2 }}
     >
-      {/* Subtle glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse 70% 50% at 80% 50%, rgba(199,67,67,0.05) 0%, transparent 60%)`,
-        }}
-      />
-
       <div className="max-w-screen-xl mx-auto w-full relative z-10">
         <motion.p
           initial={{ opacity: 0, x: -30 }}
@@ -526,20 +496,8 @@ function WhoSection() {
   return (
     <section
       className="py-24 md:py-40 px-6 md:px-16 lg:px-24 relative overflow-hidden"
-      style={{ backgroundColor: C.bg, minHeight: "100vh" }}
+      style={{ minHeight: "100vh" }}
     >
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          width: "60vw",
-          height: "60vh",
-          background: `radial-gradient(ellipse, rgba(255,91,46,0.07) 0%, transparent 70%)`,
-          top: "30%",
-          left: "30%",
-          transform: "translate(-50%, -50%)",
-        }}
-      />
-
       <div ref={ref} className="max-w-screen-xl mx-auto w-full relative z-10">
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -641,7 +599,6 @@ function HowItWorks() {
     <section
       ref={ref}
       className="px-6 md:px-16 lg:px-24 py-24 md:py-40 relative overflow-hidden"
-      style={{ backgroundColor: C.bg2 }}
     >
       <div className="max-w-4xl mx-auto">
         <motion.h2
@@ -728,7 +685,6 @@ function NetworkEffect() {
     <section
       ref={ref}
       className="relative min-h-screen flex items-center justify-center overflow-hidden px-6"
-      style={{ backgroundColor: C.bg }}
     >
       {/* Pulsing glow */}
       <motion.div
@@ -736,12 +692,12 @@ function NetworkEffect() {
         style={{
           width: "75vw",
           height: "75vh",
-          background: `radial-gradient(ellipse, rgba(255,91,46,0.17) 0%, rgba(255,138,61,0.07) 50%, transparent 70%)`,
+          background: `radial-gradient(ellipse, rgba(255,91,46,0.09) 0%, rgba(255,138,61,0.04) 50%, transparent 70%)`,
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
         }}
-        animate={{ scale: [1, 1.18, 1], opacity: [0.65, 1, 0.65] }}
+        animate={{ scale: [1, 1.12, 1], opacity: [0.5, 0.85, 0.5] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
@@ -827,7 +783,6 @@ function Projects() {
     <section
       ref={ref}
       className="px-6 md:px-16 lg:px-24 py-24 md:py-32"
-      style={{ backgroundColor: C.bg2 }}
     >
       <div className="max-w-screen-xl mx-auto">
         <motion.div
@@ -944,15 +899,7 @@ function Stats() {
     <section
       ref={ref}
       className="py-24 md:py-40 px-6 md:px-16 lg:px-24 relative overflow-hidden"
-      style={{ backgroundColor: C.bg }}
     >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,91,46,0.07) 0%, transparent 65%)`,
-        }}
-      />
-
       <div className="max-w-screen-xl mx-auto relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-6">
           {STATS.map((s, i) => (
@@ -995,15 +942,7 @@ function ExperimentalType() {
     <section
       ref={ref}
       className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 relative overflow-hidden"
-      style={{ backgroundColor: C.bg2 }}
     >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse 50% 40% at 20% 60%, rgba(255,91,46,0.05) 0%, transparent 60%)`,
-        }}
-      />
-
       <div className="max-w-screen-xl mx-auto w-full relative z-10">
         <div
           className="leading-none uppercase"
@@ -1113,7 +1052,6 @@ function Testimonials() {
     <section
       ref={ref}
       className="px-6 md:px-16 lg:px-24 py-24 md:py-32"
-      style={{ backgroundColor: C.bg }}
     >
       <div className="max-w-screen-xl mx-auto">
         <motion.p
@@ -1180,7 +1118,6 @@ function CTASection() {
     <section
       ref={ref}
       className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6 md:px-12"
-      style={{ backgroundColor: C.bg }}
     >
       {/* Pulsing glow */}
       <motion.div
@@ -1188,12 +1125,12 @@ function CTASection() {
         style={{
           width: "85vw",
           height: "85vh",
-          background: `radial-gradient(ellipse, rgba(255,91,46,0.19) 0%, rgba(199,67,67,0.09) 45%, transparent 68%)`,
+          background: `radial-gradient(ellipse, rgba(255,91,46,0.10) 0%, rgba(199,67,67,0.05) 45%, transparent 68%)`,
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
         }}
-        animate={{ scale: [1, 1.12, 1], opacity: [0.55, 1, 0.55] }}
+        animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.75, 0.4] }}
         transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
@@ -1310,8 +1247,6 @@ function Footer() {
     <footer
       className="px-6 md:px-16 lg:px-24 py-16 md:py-20"
       style={{
-        backgroundColor: C.bg,
-        borderTop: "1px solid rgba(245,242,235,0.06)",
         ...SANS,
       }}
     >
@@ -1390,7 +1325,6 @@ export default function Page() {
   return (
     <div
       style={{
-        backgroundColor: C.bg,
         color: C.cream,
         overflowX: "hidden",
         ...SANS,

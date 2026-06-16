@@ -65,6 +65,20 @@ function Counter({
   );
 }
 
+// ─── Global atmospheric background ──────────────────────────────
+function GlobalBackground() {
+  return (
+    <div
+      className="fixed inset-0 pointer-events-none select-none"
+      style={{
+        zIndex: -1,
+        background:
+          "radial-gradient(ellipse 65% 55% at 50% 45%, rgba(255,91,46,0.07) 0%, transparent 65%)",
+      }}
+    />
+  );
+}
+
 // ─── Grain overlay ──────────────────────────────────────────────
 function Grain() {
   return (
@@ -115,6 +129,45 @@ function DrawArrow({ color = C.orange }: { color?: string }) {
         />
       </svg>
     </div>
+  );
+}
+
+// ─── Hero curved scroll indicator ──────────────────────────────
+function HeroCurvedArrow({ color = C.orange }: { color?: string }) {
+  return (
+    <motion.div
+      animate={{ y: [0, 10, 0] }}
+      transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 4.5 }}
+    >
+      <svg
+        viewBox="0 0 60 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ width: 42, height: 156 }}
+      >
+        <motion.path
+          d="M 30 6 C 50 34 12 60 34 92 C 52 118 16 144 30 168"
+          stroke={color}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 2.4, ease: "easeInOut", delay: 1.8 }}
+        />
+        <motion.path
+          d="M 18 157 L 30 171 L 42 157"
+          stroke={color}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 4.0 }}
+        />
+      </svg>
+    </motion.div>
   );
 }
 
@@ -301,15 +354,16 @@ function Hero() {
         </motion.div>
       </div>
 
-      {/* Down arrow */}
+      {/* Curved scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={ready ? { opacity: 1 } : {}}
         transition={{ delay: 1.5, duration: 0.6 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-14 left-1/2 -translate-x-1/2"
       >
-        <DrawArrow />
+        <HeroCurvedArrow />
       </motion.div>
+
     </section>
   );
 }
@@ -321,14 +375,11 @@ function Manifesto() {
   return (
     <section
       ref={ref}
-      className="min-h-screen flex flex-col justify-center relative overflow-hidden"
+      className="min-h-screen flex flex-col justify-start relative overflow-hidden"
+      style={{ marginTop: "-3vw", paddingTop: "1vw" }}
     >
       <div className="px-6 md:px-16 lg:px-24 max-w-screen-xl mx-auto w-full">
-        <motion.div
-          initial={{ filter: "blur(24px)", opacity: 0 }}
-          animate={inView ? { filter: "blur(0px)", opacity: 1 } : {}}
-          transition={{ duration: 1.3, ease: "easeOut" }}
-        >
+        <div>
           <p
             className="leading-none uppercase"
             style={{
@@ -349,7 +400,7 @@ function Manifesto() {
           >
             SCROLL.
           </p>
-        </motion.div>
+        </div>
 
         <motion.div
           initial={{ filter: "blur(24px)", opacity: 0 }}
@@ -1330,6 +1381,7 @@ export default function Page() {
         ...SANS,
       }}
     >
+      <GlobalBackground />
       <Grain />
       <Nav />
       <Hero />

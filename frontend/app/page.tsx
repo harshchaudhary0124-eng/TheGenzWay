@@ -146,17 +146,17 @@ function HeroCurvedArrow({ color = C.orange }: { color?: string }) {
         filter: `drop-shadow(0 0 7px ${color}55)`,
       }}
     >
-      {/* Starts below CTA (left), arcs up and sweeps right, curves down toward center of MOST PEOPLE */}
+      {/* CTA bottom-center → emerge straight down → wide rightward arc → drop to MOST|PEOPLE gap */}
       <path
-        d="M 12 36 C 100 4 310 14 428 72 C 490 106 530 126 526 150"
+        d="M 133 -47 C 133 80 560 -80 450 264"
         stroke={color}
         strokeWidth="1.8"
         strokeLinecap="round"
         fill="none"
       />
-      {/* Downward arrowhead at tip */}
+      {/* Arrowhead — tip at path end, arms spread back perpendicular to final tangent */}
       <path
-        d="M 512 137 L 526 152 L 538 137"
+        d="M 467 248 L 450 264 L 446 242"
         stroke={color}
         strokeWidth="1.8"
         strokeLinecap="round"
@@ -353,12 +353,13 @@ function Hero() {
         </div>
       </div>
 
-      {/* Curved scroll indicator */}
+      {/* Curved scroll indicator — z-50 so it renders above the Manifesto section */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={ready ? { opacity: 1 } : {}}
         transition={{ delay: 1.5, duration: 0.6 }}
         className="absolute bottom-14 left-6 md:left-16 lg:left-24"
+        style={{ zIndex: 50 }}
       >
         <HeroCurvedArrow />
       </motion.div>

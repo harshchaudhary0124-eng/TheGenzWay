@@ -1,4 +1,27 @@
-frontend/.next/
+# Dependencies
 frontend/node_modules/
-frontend/package-lock.json
+
+# Next.js build output
+frontend/.next/
+
+# Build artifacts
+frontend/out/
+frontend/dist/
+dist/
+build/
+
+# Python
 venv/
+__pycache__/
+*.pyc
+
+# Git
+.git/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*

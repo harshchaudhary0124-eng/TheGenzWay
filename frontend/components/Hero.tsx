@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { C, DISPLAY, SANS } from "@/lib/constants";
+import BuilderConstellation from "@/components/BuilderConstellation";
 
 export default function Hero() {
   const [ready, setReady] = useState(false);
@@ -51,7 +52,7 @@ export default function Hero() {
         } catch {
           x2 = mr.left - sr.left + mr.width * 0.43;
         }
-        y2 = mr.top - sr.top + mr.height * 0.55;
+        y2 = mr.top - sr.top - 18;
       }
 
       // Cubic bezier: down from CTA, sweep right, arrive at MOST|PEOPLE gap from above
@@ -90,6 +91,7 @@ export default function Hero() {
       className="relative min-h-screen flex flex-col justify-center items-start"
       style={{ zIndex: 0 }}
     >
+      <BuilderConstellation />
       <div
         className="relative z-10 w-full px-6 md:px-16 lg:px-24"
         style={{ marginTop: "-6vh" }}
@@ -154,7 +156,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={ready ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65, delay: 1.1 }}
-            className="mt-10"
+            className="mt-10 flex flex-wrap items-center gap-4"
           >
             <a
               ref={ctaRef}
@@ -165,6 +167,26 @@ export default function Hero() {
                 color: C.bg,
                 boxShadow: `0 0 48px rgba(255,91,46,0.35)`,
                 ...SANS,
+              }}
+            >
+              Explore Builders <span>→</span>
+            </a>
+            <a
+              href="#"
+              className="inline-flex items-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
+              style={{
+                backgroundColor: "transparent",
+                color: C.cream,
+                border: `3px solid rgba(255,91,46,0.45)`,
+                ...SANS,
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.color = C.orange;
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = `rgba(255,91,46,0.45)`;
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.color = C.cream;
+                (e.currentTarget as HTMLAnchorElement).style.borderColor = `rgba(255,91,46,0.45)`;
               }}
             >
               Join The Movement <span>→</span>
@@ -191,14 +213,14 @@ export default function Hero() {
           <path
             d={arrowPath.d}
             stroke={C.orange}
-            strokeWidth="1.8"
+            strokeWidth="2.8"
             strokeLinecap="round"
             fill="none"
           />
           <path
             d={arrowPath.head}
             stroke={C.orange}
-            strokeWidth="1.8"
+            strokeWidth="2.8"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"

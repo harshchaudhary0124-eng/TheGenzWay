@@ -6,16 +6,27 @@ import { motion } from "motion/react";
 import { useReveal } from "@/hooks/useReveal";
 import { C, DISPLAY, SANS } from "@/lib/constants";
 
-const WHO_ROLES = [
-  { label: "Developers", size: "clamp(2.2rem,6.5vw,7rem)", ml: "0%", mt: "0rem" },
-  { label: "Designers", size: "clamp(1.5rem,3.8vw,4.2rem)", ml: "28%", mt: "0.5rem" },
-  { label: "Founders", size: "clamp(2.6rem,7.8vw,8.5rem)", ml: "4%", mt: "0.5rem" },
-  { label: "Creators", size: "clamp(1.4rem,3.4vw,3.8rem)", ml: "55%", mt: "0.5rem" },
-  { label: "Hackers", size: "clamp(2rem,5.5vw,6rem)", ml: "62%", mt: "0.5rem" },
-  { label: "Students", size: "clamp(1.5rem,3.8vw,4.2rem)", ml: "18%", mt: "0.5rem" },
-  { label: "Dreamers", size: "clamp(2.2rem,6.2vw,6.8rem)", ml: "48%", mt: "0.5rem" },
-  { label: "Makers", size: "clamp(1.8rem,4.8vw,5.2rem)", ml: "8%", mt: "0.5rem" },
-  { label: "Indie Builders", size: "clamp(1.2rem,2.8vw,3.2rem)", ml: "42%", mt: "0.5rem" },
+type Role = {
+  label: string;
+  size: string;
+  ml: string;
+  mt: string;
+  noSlide?: boolean;
+};
+
+const WHO_ROLES: Role[] = [
+  { label: "Developers",    size: "clamp(2.2rem,6.5vw,7rem)",   ml: "0%",  mt: "0rem"   },
+  { label: "Storytellers",  size: "clamp(2.2rem,5.5vw,6rem)",   ml: "50%", mt: "-1rem",  noSlide: true },
+  { label: "Designers",     size: "clamp(1.5rem,3.8vw,4.2rem)", ml: "26%", mt: "0.5rem" },
+  { label: "Engineers",     size: "clamp(1.8rem,4.6vw,5.2rem)", ml: "82%", mt: "-1rem" },
+  { label: "Makers",        size: "clamp(1.8rem,4.8vw,5.2rem)", ml: "8%",  mt: "0.5rem" },
+  { label: "Side Hustlers", size: "clamp(1.4rem,3.4vw,3.8rem)", ml: "38%", mt: "0.5rem" },
+  { label: "Dreamers",      size: "clamp(2.2rem,6.2vw,6.8rem)", ml: "58%", mt: "0.5rem" },
+  { label: "Indie Builders",size: "clamp(1.2rem,2.8vw,3.2rem)", ml: "22%", mt: "0.5rem" },
+  { label: "Students",      size: "clamp(1.5rem,3.8vw,4.2rem)", ml: "46%", mt: "0.5rem" },
+  { label: "Founders",      size: "clamp(2.6rem,7.8vw,8.5rem)", ml: "6%",  mt: "0.5rem" },
+  { label: "Creators",      size: "clamp(1.4rem,3.4vw,3.8rem)", ml: "70%", mt: "-10rem" },
+{ label: "Hackers",       size: "clamp(2rem,5.5vw,6rem)",     ml: "74%", mt: "3rem" },
 ];
 
 export default function WhoSection() {
@@ -29,6 +40,7 @@ export default function WhoSection() {
     >
       <div ref={ref} className="max-w-screen-xl mx-auto w-full relative z-10">
         <motion.p
+          id="who-belongs-here-label"
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
@@ -42,7 +54,7 @@ export default function WhoSection() {
           {WHO_ROLES.map((role, i) => (
             <motion.div
               key={role.label}
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: role.noSlide ? 0 : -20 }}
               animate={inView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.65, delay: i * 0.07 }}
               className="leading-none uppercase cursor-default select-none transition-colors duration-300"

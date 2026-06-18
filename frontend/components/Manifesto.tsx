@@ -61,6 +61,7 @@ export default function Manifesto() {
         </motion.div>
 
         <p
+          id="so-we-built-text"
           style={{
             ...SCRIPT,
             fontSize: "clamp(1.9rem, 3vw, 2.6rem)",

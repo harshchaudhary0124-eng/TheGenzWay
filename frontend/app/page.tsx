@@ -4,6 +4,7 @@ import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Manifesto from "@/components/Manifesto";
 import WhoSection from "@/components/WhoSection";
+import ManifestoArrow from "@/components/ManifestoArrow";
 import Projects from "@/components/Projects";
 import ExperimentalType from "@/components/ExperimentalType";
 import Testimonials from "@/components/Testimonials";
@@ -18,8 +19,11 @@ export default function Page() {
       <Grain />
       <Nav />
       <Hero />
-      <Manifesto />
-      <WhoSection />
+      <div style={{ position: "relative" }}>
+        <Manifesto />
+        <WhoSection />
+        <ManifestoArrow />
+      </div>
       <Projects />
       <ExperimentalType />
       <Testimonials />

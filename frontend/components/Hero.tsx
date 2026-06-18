@@ -8,8 +8,10 @@ import BuilderConstellation from "@/components/BuilderConstellation";
 export default function Hero() {
   const [ready, setReady] = useState(false);
   const [arrowPath, setArrowPath] = useState<{ d: string; head: string } | null>(null);
+  const [constellationHeight, setConstellationHeight] = useState<number | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
+  const ctaRowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 80);
@@ -85,13 +87,34 @@ export default function Hero() {
     };
   }, [ready]);
 
+  // Clamp constellation height to the bottom of the CTA button row
+  useEffect(() => {
+    if (!ready) return;
+    function calcConstellHeight() {
+      const section = sectionRef.current;
+      const row = ctaRowRef.current;
+      if (!section || !row) return;
+      const sr = section.getBoundingClientRect();
+      const rr = row.getBoundingClientRect();
+      // constellation top is 80px below section top; end at button row bottom
+      const h = rr.bottom - sr.top - 80;
+      if (h > 0) setConstellationHeight(h);
+    }
+    const t = setTimeout(calcConstellHeight, 1800);
+    window.addEventListener("resize", calcConstellHeight);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", calcConstellHeight);
+    };
+  }, [ready]);
+
   return (
     <section
       ref={sectionRef}
       className="relative min-h-screen flex flex-col justify-center items-start"
       style={{ zIndex: 0 }}
     >
-      <BuilderConstellation />
+      <BuilderConstellation height={constellationHeight} />
       <div
         className="relative z-10 w-full px-6 md:px-16 lg:px-24"
         style={{ marginTop: "-6vh" }}
@@ -153,6 +176,7 @@ export default function Hero() {
           </motion.div>
 
           <motion.div
+            ref={ctaRowRef}
             initial={{ opacity: 0, y: 16 }}
             animate={ready ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65, delay: 1.1 }}

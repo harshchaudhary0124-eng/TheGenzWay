@@ -3,7 +3,8 @@
 import { motion } from "motion/react";
 import { useReveal } from "@/hooks/useReveal";
 import DrawArrow from "@/components/ui/DrawArrow";
-import { C, DISPLAY, SANS } from "@/lib/constants";
+import BuilderStats from "@/components/BuilderStats";
+import { C, DISPLAY, SCRIPT } from "@/lib/constants";
 
 export default function Manifesto() {
   const { ref, inView } = useReveal({ amount: 0.25 });
@@ -14,14 +15,15 @@ export default function Manifesto() {
       className="min-h-screen flex flex-col justify-start relative overflow-hidden"
       style={{ marginTop: "-3vw", paddingTop: "1vw" }}
     >
-      <div className="px-6 md:px-16 lg:px-24 max-w-screen-xl mx-auto w-full">
+      {/* relative so the absolutely-positioned stats panel has an anchor */}
+      <div className="px-6 md:px-16 lg:px-24 max-w-screen-xl mx-auto w-full relative">
         <div>
           <p
             id="most-people-heading"
             className="leading-none uppercase"
             style={{
               ...DISPLAY,
-              fontSize: "clamp(2.8rem, 10.5vw, 11.5rem)",
+              fontSize: "clamp(2.8rem, 9vw, 10rem)",
               color: C.cream,
             }}
           >
@@ -31,7 +33,7 @@ export default function Manifesto() {
             className="leading-none uppercase"
             style={{
               ...DISPLAY,
-              fontSize: "clamp(2.8rem, 10.5vw, 11.5rem)",
+              fontSize: "clamp(2.8rem, 9vw, 10rem)",
               color: C.cream,
             }}
           >
@@ -49,7 +51,7 @@ export default function Manifesto() {
             className="leading-none uppercase"
             style={{
               ...DISPLAY,
-              fontSize: "clamp(2.8rem, 10.5vw, 11.5rem)",
+              fontSize: "clamp(2.8rem, 9vw, 10rem)",
               color: C.orange,
             }}
           >
@@ -57,15 +59,38 @@ export default function Manifesto() {
           </p>
         </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 1.3 }}
-          className="mt-14 md:mt-20 text-base md:text-xl max-w-xs"
-          style={{ color: C.muted, ...SANS, lineHeight: 1.6 }}
+        {/*
+          Desktop (lg+): absolute, right-aligned, vertically centered in the text block.
+          Mobile/tablet: normal flow, spaced below the text.
+        */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.9, delay: 1.6 }}
+          className="
+            mt-16
+            lg:mt-0
+            lg:absolute lg:top-0
+            lg:right-0
+            lg:w-72 xl:w-80
+          "
         >
-          We built this place for them.
-        </motion.p>
+          <BuilderStats />
+          <p
+            className="lg:-translate-x-[130px]"
+            style={{
+              ...SCRIPT,
+              fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
+              fontWeight: 700,
+              color: C.cream,
+              lineHeight: 1.3,
+              marginTop: "2.75rem",
+              textShadow: `0 0 32px rgba(248, 247, 247, 0.8)`,
+            }}
+          >
+            So we built this place for them.
+          </p>
+        </motion.div>
       </div>
 
       <div className="flex justify-center mt-16">

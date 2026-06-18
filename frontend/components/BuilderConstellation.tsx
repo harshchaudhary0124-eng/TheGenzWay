@@ -17,8 +17,8 @@ const ACTIVITIES = [
   "A builder just got their first paying customer.",
   "A team just formed around an idea.",
   "The first user just signed up.",
-  "You haven't met your future co-founder yet.",
-  "You are not building alone.",
+  "Shreya just got her first 100 users.",
+  "A team of two just shipped their first product.",
 ];
 
 interface NodeData {
@@ -67,7 +67,7 @@ const ALL_EDGES: EdgeData[] = (() => {
   return edges;
 })();
 
-export default function BuilderConstellation() {
+export default function BuilderConstellation({ height }: { height?: number | null }) {
   const [count, setCount] = useState(38);
   const [active, setActive] = useState<ActiveEvent | null>(null);
   const countRef = useRef(38);
@@ -127,7 +127,7 @@ export default function BuilderConstellation() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, delay: 0.4 }}
       className="hidden md:block absolute right-0 pointer-events-none overflow-hidden"
-      style={{ width: "55%", zIndex: 1, top: "80px", height: "calc(100% - 80px)" }}
+      style={{ width: "55%", zIndex: 1, top: "80px", height: height != null ? height : "calc(100% - 80px)" }}
     >
       <svg
         viewBox={`0 0 ${VW} ${VH}`}

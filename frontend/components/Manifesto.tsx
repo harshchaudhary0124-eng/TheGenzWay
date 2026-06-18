@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import { useReveal } from "@/hooks/useReveal";
-import DrawArrow from "@/components/ui/DrawArrow";
 import BuilderStats from "@/components/BuilderStats";
 import { C, DISPLAY, SCRIPT } from "@/lib/constants";
 
@@ -12,8 +11,8 @@ export default function Manifesto() {
   return (
     <section
       ref={ref}
-      className="min-h-screen flex flex-col justify-start relative overflow-hidden"
-      style={{ marginTop: "-3vw", paddingTop: "1vw" }}
+      className="flex flex-col justify-start relative overflow-hidden"
+      style={{ marginTop: "-3vw", paddingTop: "1vw", minHeight: "84vh", paddingBottom: "5vh" }}
     >
       {/* relative so the absolutely-positioned stats panel has an anchor */}
       <div className="px-6 md:px-16 lg:px-24 max-w-screen-xl mx-auto w-full relative">
@@ -61,6 +60,21 @@ export default function Manifesto() {
           </p>
         </motion.div>
 
+        <p
+          style={{
+            ...SCRIPT,
+            fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
+            fontWeight: 700,
+            color: C.cream,
+            lineHeight: 1.3,
+            marginTop: "calc(1.25rem + 38px)",
+            marginLeft: "calc(2rem + 241px)",
+            textShadow: `0 0 32px rgba(248, 247, 247, 0.8)`,
+          }}
+        >
+          So we built this place for them.
+        </p>
+
         {/*
           Stats panel: absolutely positioned at the far-right of the content area.
           Absolute placement keeps it out of the heading flow, preserving the full
@@ -79,27 +93,10 @@ export default function Manifesto() {
           "
         >
           <BuilderStats />
-          <p
-            className="lg:-translate-x-[130px]"
-            style={{
-              ...SCRIPT,
-              fontSize: "clamp(1.9rem, 3vw, 2.6rem)",
-              fontWeight: 700,
-              color: C.cream,
-              lineHeight: 1.3,
-              marginTop: "2.75rem",
-              textShadow: `0 0 32px rgba(248, 247, 247, 0.8)`,
-            }}
-          >
-            So we built this place for them.
-          </p>
         </div>
 
       </div>
 
-      <div className="flex justify-center mt-16">
-        <DrawArrow />
-      </div>
     </section>
   );
 }

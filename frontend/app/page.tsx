@@ -3,7 +3,6 @@ import Grain from "@/components/ui/Grain";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Manifesto from "@/components/Manifesto";
-import Problem from "@/components/Problem";
 import WhoSection from "@/components/WhoSection";
 import Projects from "@/components/Projects";
 import ExperimentalType from "@/components/ExperimentalType";
@@ -20,7 +19,6 @@ export default function Page() {
       <Nav />
       <Hero />
       <Manifesto />
-      <Problem />
       <WhoSection />
       <Projects />
       <ExperimentalType />

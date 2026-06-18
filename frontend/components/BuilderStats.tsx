@@ -11,14 +11,23 @@ const STATS = [
   { id: 3, label: "COUNTRIES CONNECTED", initial: 12 },
 ] as const;
 
+const ACTIVITIES = [
+  "+1 Builder joined",
+  "Project shipped",
+  "Founder matched",
+  "New city connected",
+] as const;
+
 function StatRow({
   value,
   label,
+  activity,
   isGlowing,
   reducedMotion,
 }: {
   value: number;
   label: string;
+  activity: string;
   isGlowing: boolean;
   reducedMotion: boolean;
 }) {
@@ -59,44 +68,70 @@ function StatRow({
   }, [value, reducedMotion]);
 
   return (
-    <motion.div
-      animate={
-        isGlowing && !reducedMotion
-          ? { textShadow: `0 0 22px ${C.glow}` }
-          : { textShadow: "0 0 0px #FF8A3D" }
-      }
-      transition={{ duration: 0.4, ease: "easeOut" }}
-    >
-      <p
-        aria-live="polite"
-        aria-atomic="true"
-        style={{
-          ...DISPLAY,
-          fontSize: "clamp(2rem, 3.8vw, 3.2rem)",
-          color: C.orange,
-          lineHeight: 1,
-        }}
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <motion.div
+        style={{ flex: 1, minWidth: 0 }}
+        animate={
+          isGlowing && !reducedMotion
+            ? { textShadow: `0 0 22px ${C.glow}` }
+            : { textShadow: "0 0 0px #FF8A3D" }
+        }
+        transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {displayed.toLocaleString()}
-      </p>
-      <p
+        <p
+          aria-live="polite"
+          aria-atomic="true"
+          style={{
+            ...DISPLAY,
+            fontSize: "clamp(2rem, 3.8vw, 3.2rem)",
+            color: C.orange,
+            lineHeight: 1,
+          }}
+        >
+          {displayed.toLocaleString()}
+        </p>
+        <p
+          style={{
+            ...SANS,
+            fontSize: "0.68rem",
+            letterSpacing: "0.14em",
+            color: C.muted,
+            marginTop: "0.35rem",
+          }}
+        >
+          {label}
+        </p>
+      </motion.div>
+      <motion.span
+        initial={{ opacity: 0, x: 6 }}
+        animate={
+          isGlowing && !reducedMotion
+            ? { opacity: 1, x: 0 }
+            : { opacity: 0, x: 6 }
+        }
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        aria-hidden="true"
         style={{
           ...SANS,
-          fontSize: "0.68rem",
-          letterSpacing: "0.14em",
-          color: C.muted,
-          marginTop: "0.35rem",
+          fontSize: "0.82rem",
+          letterSpacing: "0.04em",
+          color: "rgba(255,255,255,0.38)",
+          whiteSpace: "nowrap",
+          flexShrink: 0,
+          paddingLeft: "0.75rem",
+          textAlign: "right",
         }}
       >
-        {label}
-      </p>
-    </motion.div>
+        {activity}
+      </motion.span>
+    </div>
   );
 }
 
 export default function BuilderStats() {
   const [values, setValues] = useState<number[]>(() => STATS.map((s) => s.initial));
   const [glowing, setGlowing] = useState<number | null>(null);
+  const [activeMinutes, setActiveMinutes] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inViewRef = useRef(false);
@@ -119,6 +154,7 @@ export default function BuilderStats() {
         const idx = Math.floor(Math.random() * STATS.length);
         const delta = Math.floor(Math.random() * 3) + 1;
         setValues((prev) => prev.map((v, i) => (i === idx ? v + delta : v)));
+        setActiveMinutes(Math.floor(Math.random() * 15) + 1);
         setGlowing(idx);
         if (glowTimerRef.current) clearTimeout(glowTimerRef.current);
         glowTimerRef.current = setTimeout(() => setGlowing(null), 1200);
@@ -149,6 +185,17 @@ export default function BuilderStats() {
       ref={containerRef}
       style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}
     >
+      <p
+        style={{
+          ...SANS,
+          fontSize: "0.88rem",
+          letterSpacing: "0.18em",
+          color: `${C.orange}99`,
+          textTransform: "uppercase",
+        }}
+      >
+        Live Builder Network
+      </p>
       {STATS.map((stat, i) => (
         <div key={stat.id}>
           {i > 0 && (
@@ -163,6 +210,7 @@ export default function BuilderStats() {
           <StatRow
             value={values[i]}
             label={stat.label}
+            activity={activeMinutes !== null ? `${ACTIVITIES[i]} · ${activeMinutes} min ago` : ACTIVITIES[i]}
             isGlowing={glowing === i}
             reducedMotion={reducedMotion}
           />

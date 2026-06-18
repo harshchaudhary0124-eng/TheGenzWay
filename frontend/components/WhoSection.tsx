@@ -24,7 +24,7 @@ export default function WhoSection() {
 
   return (
     <section
-      className="py-24 md:py-40 px-6 md:px-16 lg:px-24 relative overflow-hidden"
+      className="pt-2 pb-24 md:pt-6 md:pb-40 px-6 md:px-16 lg:px-24 relative overflow-hidden"
       style={{ minHeight: "100vh" }}
     >
       <div ref={ref} className="max-w-screen-xl mx-auto w-full relative z-10">
@@ -32,8 +32,8 @@ export default function WhoSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-xs uppercase tracking-[0.25em] mb-12 md:mb-16"
-          style={{ color: C.orange, ...SANS }}
+          className="uppercase tracking-[0.25em] mb-12 md:mb-16"
+          style={{ color: C.orange, ...SANS, fontSize: "20px" }}
         >
           Who belongs here
         </motion.p>

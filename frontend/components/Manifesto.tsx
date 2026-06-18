@@ -17,6 +17,8 @@ export default function Manifesto() {
     >
       {/* relative so the absolutely-positioned stats panel has an anchor */}
       <div className="px-6 md:px-16 lg:px-24 max-w-screen-xl mx-auto w-full relative">
+
+        {/* Manifesto headings — left-aligned, full width, unaffected by stats */}
         <div>
           <p
             id="most-people-heading"
@@ -60,18 +62,19 @@ export default function Manifesto() {
         </motion.div>
 
         {/*
-          Desktop (lg+): absolute, right-aligned, vertically centered in the text block.
-          Mobile/tablet: normal flow, spaced below the text.
+          Stats panel: absolutely positioned at the far-right of the content area.
+          Absolute placement keeps it out of the heading flow, preserving the full
+          heading width and creating the breathing space between the two blocks.
+          Plain div — no opacity animation, always visible.
+
+          Desktop (lg+): absolute, anchored to top-right of the content div.
+          Mobile/tablet:  normal flow, spaced below the text.
         */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.9, delay: 1.6 }}
+        <div
           className="
             mt-16
             lg:mt-0
-            lg:absolute lg:top-0
-            lg:right-0
+            lg:absolute lg:top-0 lg:right-0
             lg:w-72 xl:w-80
           "
         >
@@ -90,7 +93,8 @@ export default function Manifesto() {
           >
             So we built this place for them.
           </p>
-        </motion.div>
+        </div>
+
       </div>
 
       <div className="flex justify-center mt-16">

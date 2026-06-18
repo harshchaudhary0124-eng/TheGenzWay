@@ -87,7 +87,9 @@ export default function Hero() {
     };
   }, [ready]);
 
-  // Clamp constellation height to the bottom of the CTA button row
+  // Clamp constellation height to the bottom of the CTA button row.
+  // Runs immediately when ready — no timeout, so height is never null when the
+  // constellation first renders and the calc(100% - 80px) fallback is never hit.
   useEffect(() => {
     if (!ready) return;
     function calcConstellHeight() {
@@ -100,12 +102,9 @@ export default function Hero() {
       const h = rr.bottom - sr.top - 80;
       if (h > 0) setConstellationHeight(h);
     }
-    const t = setTimeout(calcConstellHeight, 1800);
+    calcConstellHeight();
     window.addEventListener("resize", calcConstellHeight);
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener("resize", calcConstellHeight);
-    };
+    return () => window.removeEventListener("resize", calcConstellHeight);
   }, [ready]);
 
   return (
@@ -114,7 +113,9 @@ export default function Hero() {
       className="relative min-h-screen flex flex-col justify-center items-start"
       style={{ zIndex: 0 }}
     >
-      <BuilderConstellation height={constellationHeight} />
+      {ready && constellationHeight != null && (
+        <BuilderConstellation height={constellationHeight} />
+      )}
       <div
         className="relative z-10 w-full px-6 md:px-16 lg:px-24"
         style={{ marginTop: "-6vh" }}

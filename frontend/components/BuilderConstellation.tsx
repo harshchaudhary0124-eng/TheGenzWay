@@ -9,16 +9,22 @@ const VH = 900;
 const CONNECT_DIST = 210;
 
 const ACTIVITIES = [
-  "Someone just launched Version 1.",
-  "A founder found their first 10 users.",
-  "An idea became a startup.",
-  "A prototype just shipped.",
-  "A solopreneur just found a co-founder.",
-  "A builder just got their first paying customer.",
-  "A team just formed around an idea.",
-  "The first user just signed up.",
-  "Shreya just got her first 100 users.",
-  "A team of two just shipped their first product.",
+  "Ishaan received his first product feedback.",
+  "Aditi shipped her MVP after 3 weeks of building.",
+  "Yash got his first freelance client.",
+  "Chaitanya just found his first co-founder.",
+  "Rahul got his first paying customer.",
+  "Arjun launched Version 1 today.",
+  "Sneha found a designer for her startup.",
+  "Karan signed up his first 10 users.",
+  "Ananya just quit planning and started building.",
+  "Rohan deployed his project to production.",
+  "Priya found her first technical co-founder.",
+  "Dev closed his first client call.",
+  "Harsh launched a project at 2:14 AM.",
+  "Ishaan received his first product feedback.",
+  "A founder from Bangalore just joined a team.",
+  "Someone in Delhi just found a growth partner.",
 ];
 
 interface NodeData {
@@ -67,10 +73,27 @@ const ALL_EDGES: EdgeData[] = (() => {
   return edges;
 })();
 
-export default function BuilderConstellation({ height }: { height?: number | null }) {
+export default function BuilderConstellation({ height }: { height: number }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
   const [count, setCount] = useState(38);
   const [active, setActive] = useState<ActiveEvent | null>(null);
   const countRef = useRef(38);
+
+  // Only mark ready once the container has real, non-zero dimensions.
+  // Using ResizeObserver instead of a timeout makes this dimension-driven, not time-driven.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      const rect = entries[0]?.contentRect;
+      if (rect && rect.width > 0 && rect.height > 0) {
+        setReady(true);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const update = () => {
@@ -83,7 +106,9 @@ export default function BuilderConstellation({ height }: { height?: number | nul
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  // Activity ticker starts only after the constellation is visible
   useEffect(() => {
+    if (!ready) return;
     let t: ReturnType<typeof setTimeout>;
 
     function show() {
@@ -102,7 +127,7 @@ export default function BuilderConstellation({ height }: { height?: number | nul
 
     t = setTimeout(show, 1200);
     return () => clearTimeout(t);
-  }, []);
+  }, [ready]);
 
   const nodes = ALL_NODES.slice(0, count);
   const edges = ALL_EDGES.filter((e) => e.from < count && e.to < count);
@@ -122,179 +147,212 @@ export default function BuilderConstellation({ height }: { height?: number | nul
   const offsetY = cardTop > 80 ? -52 : 12;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6, delay: 0.4 }}
-      className="hidden md:block absolute right-0 pointer-events-none overflow-hidden"
-      style={{ width: "55%", zIndex: 1, top: "80px", height: height != null ? height : "calc(100% - 80px)" }}
+    // All layout CSS is inline — React applies synchronously, no Tailwind timing dependency.
+    // Only responsive display toggling stays in className.
+    <div
+      ref={containerRef}
+      className="hidden md:block"
+      style={{
+        position: "absolute",
+        right: 0,
+        top: "80px",
+        width: "55%",
+        height: height,
+        zIndex: 1,
+        overflow: "hidden",
+        pointerEvents: "none",
+        // visibility:hidden is CSS-native and applied before any JS runs,
+        // ensuring the container is never visually painted before layout is stable.
+        visibility: ready ? "visible" : "hidden",
+        // Belt-and-suspenders: clip-path is independent of overflow and cannot
+        // be overridden by child elements, preventing any SVG bleed.
+        clipPath: "inset(0)",
+      }}
     >
-      <svg
-        viewBox={`0 0 ${VW} ${VH}`}
-        preserveAspectRatio="xMidYMid slice"
-        style={{ width: "100%", height: "100%" }}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <filter id="bc-glow-active" x="-150%" y="-150%" width="400%" height="400%">
-            <feGaussianBlur stdDeviation="14" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="bc-glow-soft" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="6" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="bc-glow-ambient" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="3" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {edges.map((e, i) => {
-          const lit =
-            active !== null &&
-            (e.from === active.nodeId || e.to === active.nodeId);
-          return (
-            <motion.line
-              key={i}
-              x1={ALL_NODES[e.from].x}
-              y1={ALL_NODES[e.from].y}
-              x2={ALL_NODES[e.to].x}
-              y2={ALL_NODES[e.to].y}
-              stroke={ORANGE}
-              animate={{
-                opacity: lit ? 0.55 : 0.13,
-                strokeWidth: lit ? 1.4 : 0.6,
-              }}
-              transition={{ duration: 0.4 }}
-            />
-          );
-        })}
-
-        {nodes.map((node) => {
-          const isActive = active?.nodeId === node.id;
-          const isNeighbor = activeNeighborIds.has(node.id);
-          return (
-            <motion.circle
-              key={node.id}
-              r={node.baseR}
-              fill={ORANGE}
-              filter={
-                isActive
-                  ? "url(#bc-glow-active)"
-                  : isNeighbor
-                  ? "url(#bc-glow-soft)"
-                  : "url(#bc-glow-ambient)"
-              }
-              animate={{
-                cx: [
-                  node.x,
-                  node.x + node.driftX,
-                  node.x,
-                  node.x - node.driftX,
-                  node.x,
-                ],
-                cy: [
-                  node.y,
-                  node.y + node.driftY,
-                  node.y,
-                  node.y - node.driftY,
-                  node.y,
-                ],
-                opacity: isActive ? 1 : isNeighbor ? 0.82 : 0.58,
-                r: isActive
-                  ? [node.baseR * 2.2, node.baseR * 3.1, node.baseR * 2.2]
-                  : node.baseR,
-              }}
-              transition={{
-                cx: {
-                  duration: node.driftDur,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                },
-                cy: {
-                  duration: node.driftDur * 1.3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                },
-                opacity: { duration: 0.4 },
-                r: isActive
-                  ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
-                  : { duration: 0.4 },
-              }}
-            />
-          );
-        })}
-      </svg>
-
+      {/*
+        AnimatePresence + conditional mount: Framer Motion sets initial={{ opacity: 0 }}
+        via useLayoutEffect before first paint — guaranteed no flash on mount.
+      */}
       <AnimatePresence>
-        {active && activeNode && (
+        {ready && (
           <motion.div
-            key={active.key}
-            initial={{ opacity: 0, scale: 0.85, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -6 }}
-            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute"
-            style={{
-              left: `calc(${cardLeft}% + ${offsetX}px)`,
-              top: `calc(${cardTop}% + ${offsetY}px)`,
-              pointerEvents: "none",
-            }}
+            key="constellation-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            style={{ width: "100%", height: "100%", position: "relative" }}
           >
-            <div
-              style={{
-                background: "rgba(8,8,8,0.8)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid rgba(255,91,46,0.22)",
-                borderRadius: "8px",
-                padding: "7px 14px",
-                whiteSpace: "nowrap",
-                boxShadow:
-                  "0 0 28px rgba(255,91,46,0.1), 0 4px 24px rgba(0,0,0,0.45)",
-              }}
+          <>
+            <svg
+              viewBox={`0 0 ${VW} ${VH}`}
+              preserveAspectRatio="xMidYMid slice"
+              style={{ width: "100%", height: "100%" }}
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
+              <defs>
+                <filter id="bc-glow-active" x="-150%" y="-150%" width="400%" height="400%">
+                  <feGaussianBlur stdDeviation="14" result="b" />
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter id="bc-glow-soft" x="-80%" y="-80%" width="260%" height="260%">
+                  <feGaussianBlur stdDeviation="6" result="b" />
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter id="bc-glow-ambient" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="3" result="b" />
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {edges.map((e, i) => {
+                const lit =
+                  active !== null &&
+                  (e.from === active.nodeId || e.to === active.nodeId);
+                return (
+                  <motion.line
+                    key={i}
+                    x1={ALL_NODES[e.from].x}
+                    y1={ALL_NODES[e.from].y}
+                    x2={ALL_NODES[e.to].x}
+                    y2={ALL_NODES[e.to].y}
+                    stroke={ORANGE}
+                    animate={{
+                      opacity: lit ? 0.55 : 0.13,
+                      strokeWidth: lit ? 1.4 : 0.6,
+                    }}
+                    transition={{ duration: 0.4 }}
+                  />
+                );
+              })}
+
+              {nodes.map((node) => {
+                const isActive = active?.nodeId === node.id;
+                const isNeighbor = activeNeighborIds.has(node.id);
+                return (
+                  <motion.circle
+                    key={node.id}
+                    r={node.baseR}
+                    fill={ORANGE}
+                    filter={
+                      isActive
+                        ? "url(#bc-glow-active)"
+                        : isNeighbor
+                        ? "url(#bc-glow-soft)"
+                        : "url(#bc-glow-ambient)"
+                    }
+                    animate={{
+                      cx: [
+                        node.x,
+                        node.x + node.driftX,
+                        node.x,
+                        node.x - node.driftX,
+                        node.x,
+                      ],
+                      cy: [
+                        node.y,
+                        node.y + node.driftY,
+                        node.y,
+                        node.y - node.driftY,
+                        node.y,
+                      ],
+                      opacity: isActive ? 1 : isNeighbor ? 0.82 : 0.58,
+                      r: isActive
+                        ? [node.baseR * 2.2, node.baseR * 3.1, node.baseR * 2.2]
+                        : node.baseR,
+                    }}
+                    transition={{
+                      cx: {
+                        duration: node.driftDur,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
+                      cy: {
+                        duration: node.driftDur * 1.3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
+                      opacity: { duration: 0.4 },
+                      r: isActive
+                        ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+                        : { duration: 0.4 },
+                    }}
+                  />
+                );
+              })}
+            </svg>
+
+            <AnimatePresence>
+              {active && activeNode && (
                 <motion.div
-                  animate={{ opacity: [1, 0.35, 1] }}
-                  transition={{ duration: 1.2, repeat: Infinity }}
+                  key={active.key}
+                  initial={{ opacity: 0, scale: 0.85, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -6 }}
+                  transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute"
                   style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    backgroundColor: ORANGE,
-                    boxShadow: `0 0 8px ${ORANGE}`,
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    color: "#F5F2EB",
-                    fontSize: "11.5px",
-                    fontFamily: "'DM Sans', system-ui, sans-serif",
-                    fontWeight: 500,
-                    letterSpacing: "0.01em",
+                    left: `calc(${cardLeft}% + ${offsetX}px)`,
+                    top: `calc(${cardTop}% + ${offsetY}px)`,
+                    pointerEvents: "none",
                   }}
                 >
-                  {active.message}
-                </span>
-              </div>
-            </div>
+                  <div
+                    style={{
+                      background: "rgba(8,8,8,0.8)",
+                      backdropFilter: "blur(16px)",
+                      WebkitBackdropFilter: "blur(16px)",
+                      border: "1px solid rgba(255,91,46,0.22)",
+                      borderRadius: "8px",
+                      padding: "7px 14px",
+                      whiteSpace: "nowrap",
+                      boxShadow:
+                        "0 0 28px rgba(255,91,46,0.1), 0 4px 24px rgba(0,0,0,0.45)",
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                    >
+                      <motion.div
+                        animate={{ opacity: [1, 0.35, 1] }}
+                        transition={{ duration: 1.2, repeat: Infinity }}
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          backgroundColor: ORANGE,
+                          boxShadow: `0 0 8px ${ORANGE}`,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span
+                        style={{
+                          color: "#F5F2EB",
+                          fontSize: "11.5px",
+                          fontFamily: "'DM Sans', system-ui, sans-serif",
+                          fontWeight: 500,
+                          letterSpacing: "0.01em",
+                        }}
+                      >
+                        {active.message}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }

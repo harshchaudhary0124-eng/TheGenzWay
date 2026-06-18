@@ -113,7 +113,7 @@ export default function BuilderStats() {
 
   const scheduleNext = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    const delay = 8000 + Math.random() * 12000;
+    const delay = 2000 + Math.random() * 2000;
     timerRef.current = setTimeout(() => {
       if (inViewRef.current) {
         const idx = Math.floor(Math.random() * STATS.length);

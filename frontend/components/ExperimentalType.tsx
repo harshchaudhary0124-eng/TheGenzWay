@@ -81,6 +81,45 @@ function CurvedDisplay() {
         />
         <path d={SCREEN_PATH} fill="url(#cg-fill)" />
         <path d={SCREEN_PATH} fill="url(#cg-warm)" />
+
+        {/* Newspapers clipped inside the curved display — 3-panel gallery */}
+        <g clipPath="url(#cg-clip)">
+          {/* Slot 1 — left */}
+          <image
+            href="/newspapers/2.webp"
+            x={5}
+            y={15}
+            width={148}
+            height={325}
+            preserveAspectRatio="xMidYMid slice"
+            opacity={0.88}
+          />
+          {/* Slot 2 — center (gap: 3px) */}
+          <image
+            href="/newspapers/5.jpg"
+            x={156}
+            y={15}
+            width={148}
+            height={325}
+            preserveAspectRatio="xMidYMid slice"
+            opacity={0.86}
+          />
+          {/* Slot 3 — right (gap: 3px) */}
+          <image
+            href="/newspapers/9.jpg"
+            x={307}
+            y={15}
+            width={148}
+            height={325}
+            preserveAspectRatio="xMidYMid slice"
+            opacity={0.87}
+          />
+          {/* Atmospheric vignette */}
+          <path d={SCREEN_PATH} fill="rgba(6,4,4,0.32)" />
+          {/* Warm tint overlay */}
+          <path d={SCREEN_PATH} fill="url(#cg-warm)" />
+        </g>
+
         <path
           d={SCREEN_PATH}
           fill="none"

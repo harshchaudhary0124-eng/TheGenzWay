@@ -15,12 +15,12 @@ type Role = {
 };
 
 const WHO_ROLES: Role[] = [
-  { label: "Developers",    size: "clamp(2.2rem,6.5vw,7rem)",   ml: "0%",  mt: "0rem"   },
-  { label: "Storytellers",  size: "clamp(2.2rem,5.5vw,6rem)",   ml: "50%", mt: "-1rem",  noSlide: true },
+  { label: "Developers",    size: "clamp(2.2rem,6.5vw,7rem)",   ml: "0%",  mt: "-1.5rem"   },
+  { label: "Storytellers",  size: "clamp(2.2rem,5.5vw,6rem)",   ml: "50%", mt: "-3rem",  noSlide: true },
   { label: "Designers",     size: "clamp(1.5rem,3.8vw,4.2rem)", ml: "26%", mt: "0.5rem" },
   { label: "Engineers",     size: "clamp(1.8rem,4.6vw,5.2rem)", ml: "82%", mt: "-1rem" },
-  { label: "Makers",        size: "clamp(1.8rem,4.8vw,5.2rem)", ml: "8%",  mt: "0.5rem" },
-  { label: "Side Hustlers", size: "clamp(1.4rem,3.4vw,3.8rem)", ml: "38%", mt: "0.5rem" },
+  { label: "Makers",        size: "clamp(1.8rem,4.8vw,5.2rem)", ml: "8%",  mt: "-1.5rem" },
+  { label: "Side Hustlers", size: "clamp(1.4rem,3.4vw,3.8rem)", ml: "38%", mt: "-5.5rem" },
   { label: "Dreamers",      size: "clamp(2.2rem,6.2vw,6.8rem)", ml: "58%", mt: "0.5rem" },
   { label: "Indie Builders",size: "clamp(1.2rem,2.8vw,3.2rem)", ml: "22%", mt: "0.5rem" },
   { label: "Students",      size: "clamp(1.5rem,3.8vw,4.2rem)", ml: "46%", mt: "0.5rem" },
@@ -35,17 +35,16 @@ export default function WhoSection() {
 
   return (
     <section
-      className="pt-2 pb-24 md:pt-6 md:pb-40 px-6 md:px-16 lg:px-24 relative overflow-hidden"
-      style={{ minHeight: "100vh" }}
+      className="pt-2 pb-8 md:pt-6 md:pb-12 px-6 md:px-16 lg:px-24 relative overflow-hidden"
     >
       <div ref={ref} className="max-w-screen-xl mx-auto w-full relative z-10">
         <motion.p
           id="who-belongs-here-label"
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 0.6 }}
           className="uppercase tracking-[0.25em] mb-12 md:mb-16"
-          style={{ color: C.orange, ...SANS, fontSize: "20px" }}
+          style={{ color: C.orange, ...SANS, fontSize: "23px" }}
         >
           Who belongs here
         </motion.p>

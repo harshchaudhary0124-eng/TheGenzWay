@@ -6,7 +6,6 @@ import Manifesto from "@/components/Manifesto";
 import WhoSection from "@/components/WhoSection";
 import ManifestoArrow from "@/components/ManifestoArrow";
 import ExperimentalType from "@/components/ExperimentalType";
-import Testimonials from "@/components/Testimonials";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import { C, SANS } from "@/lib/constants";
@@ -24,8 +23,7 @@ export default function Page() {
         <ManifestoArrow />
       </div>
       <ExperimentalType />
-      <Testimonials />
-      <CTASection />
+<CTASection />
       <Footer />
     </div>
   );

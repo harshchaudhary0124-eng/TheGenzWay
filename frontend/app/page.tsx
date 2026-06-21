@@ -12,7 +12,7 @@ import { C, SANS } from "@/lib/constants";
 
 export default function Page() {
   return (
-    <div style={{ color: C.cream, overflowX: "hidden", ...SANS }}>
+    <div style={{ color: C.cream, ...SANS }}>
       <GlobalBackground />
       <Grain />
       <Nav />
@@ -23,8 +23,10 @@ export default function Page() {
         <ManifestoArrow />
       </div>
       <ExperimentalType />
-<CTASection />
-      <Footer />
+      <div className="min-h-screen flex flex-col">
+        <CTASection />
+        <Footer />
+      </div>
     </div>
   );
 }

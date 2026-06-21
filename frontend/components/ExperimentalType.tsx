@@ -162,6 +162,34 @@ const spread = Math.PI / 4.8;
       ref={setSectionRef}
       className="min-h-screen flex items-center px-6 md:px-16 lg:px-24 relative overflow-hidden"
     >
+      {/* Ambient glows */}
+      <motion.div
+        aria-hidden
+        className="absolute pointer-events-none"
+        style={{
+          top: "20%", left: "-10%",
+          width: "60vw", height: "60vw",
+          background: `radial-gradient(ellipse, rgba(255,91,46,0.08) 0%, rgba(255,138,61,0.03) 45%, transparent 70%)`,
+          filter: "blur(55px)",
+          zIndex: 0,
+        }}
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute pointer-events-none"
+        style={{
+          bottom: "10%", right: "5%",
+          width: "40vw", height: "40vw",
+          background: `radial-gradient(ellipse, rgba(199,67,67,0.07) 0%, transparent 65%)`,
+          filter: "blur(48px)",
+          zIndex: 0,
+        }}
+        animate={{ opacity: [0.5, 0.9, 0.5] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+      />
+
       {/* Image — right, desktop only */}
       <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:block pr-12 xl:pr-20">
         <OpImage inView={inView} ref={imageRef} />
@@ -177,23 +205,23 @@ const spread = Math.PI / 4.8;
           <motion.path
             d={arrow.d}
             stroke="white"
-            strokeWidth="9"
+            strokeWidth="13"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
             initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 0.88 }}
+            animate={{ pathLength: 1, opacity: 1 }}
             transition={{ duration: 1.1, ease: "easeInOut" }}
           />
           <motion.path
             d={arrow.head}
             stroke="white"
-            strokeWidth="9"
+            strokeWidth="13"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.88 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.25, delay: 1.05 }}
           />
         </svg>

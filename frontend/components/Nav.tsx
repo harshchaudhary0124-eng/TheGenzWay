@@ -18,9 +18,10 @@ export default function Nav() {
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
         style={{
-          backdropFilter: scrolled ? "blur(20px) saturate(180%)" : "blur(0px)",
-          backgroundColor: scrolled ? "rgba(8,8,8,0.85)" : "transparent",
-          borderBottom: scrolled ? "1px solid rgba(245,242,235,0.06)" : "none",
+          backdropFilter: scrolled ? "blur(20px) saturate(180%)" : "blur(14px) saturate(140%)",
+          backgroundColor: scrolled ? "rgba(8,8,8,0.92)" : "rgba(8,8,8,0.65)",
+          borderBottom: "1px solid rgba(245,242,235,0.04)",
+          isolation: "isolate",
           ...SANS,
         }}
       >

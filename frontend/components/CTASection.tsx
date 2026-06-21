@@ -10,7 +10,7 @@ export default function CTASection() {
   return (
     <section
       ref={ref}
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6 md:px-12"
+      className="relative flex-1 flex flex-col items-center justify-center px-6 md:px-12"
     >
       <motion.div
         className="absolute pointer-events-none"
@@ -22,11 +22,11 @@ export default function CTASection() {
           left: "50%",
           transform: "translate(-50%, -50%)",
         }}
-        animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.75, 0.4] }}
+        animate={{ opacity: [0.4, 0.75, 0.4] }}
         transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative z-10 text-center w-full max-w-screen-xl mx-auto">
+      <div className="relative z-10 text-center w-full max-w-screen-xl mx-auto mt-24 md:mt-32">
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -36,7 +36,7 @@ export default function CTASection() {
             className="leading-none uppercase"
             style={{
               ...DISPLAY,
-              fontSize: "clamp(3rem, 15vw, 17rem)",
+              fontSize: "clamp(3rem, 15vw, calc(17rem - 5px))",
               color: C.cream,
               letterSpacing: "-0.01em",
             }}
@@ -110,22 +110,6 @@ export default function CTASection() {
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 0.35 } : {}}
-        transition={{ delay: 1.8 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2"
-      >
-        <svg viewBox="0 0 60 28" fill="none" style={{ width: 40 }}>
-          <path
-            d="M 8 4 L 30 22 L 52 4"
-            stroke={C.orange}
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </motion.div>
     </section>
   );
 }

@@ -5,15 +5,45 @@ import { useReveal } from "@/hooks/useReveal";
 import BuilderStats from "@/components/BuilderStats";
 import { C, DISPLAY, SCRIPT } from "@/lib/constants";
 
+
 export default function Manifesto() {
   const { ref, inView } = useReveal({ amount: 0.25 });
 
   return (
     <section
       ref={ref}
-      className="flex flex-col justify-start relative overflow-hidden"
+      className="flex flex-col justify-start relative"
       style={{ marginTop: "-3vw", paddingTop: "1vw", minHeight: "84vh", paddingBottom: "5vh" }}
     >
+
+      {/* Ambient glows */}
+      <motion.div
+        aria-hidden
+        className="absolute pointer-events-none"
+        style={{
+          top: "-20%", left: "-10%",
+          width: "70vw", height: "70vw",
+          background: `radial-gradient(ellipse, rgba(255,91,46,0.07) 0%, rgba(255,138,61,0.03) 45%, transparent 70%)`,
+          filter: "blur(40px)",
+          zIndex: 0,
+        }}
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute pointer-events-none"
+        style={{
+          bottom: "-15%", right: "-5%",
+          width: "50vw", height: "50vw",
+          background: `radial-gradient(ellipse, rgba(199,67,67,0.06) 0%, transparent 65%)`,
+          filter: "blur(48px)",
+          zIndex: 0,
+        }}
+        animate={{ opacity: [0.5, 0.9, 0.5] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
+
       {/* relative so the absolutely-positioned stats panel has an anchor */}
       <div className="px-6 md:px-16 lg:px-24 max-w-screen-xl mx-auto w-full relative">
 

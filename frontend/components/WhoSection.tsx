@@ -35,8 +35,36 @@ export default function WhoSection() {
 
   return (
     <section
-      className="pt-2 pb-8 md:pt-6 md:pb-12 px-6 md:px-16 lg:px-24 relative overflow-hidden"
+      className="pt-2 pb-8 md:pt-6 md:pb-12 px-6 md:px-16 lg:px-24 relative"
     >
+      {/* Ambient glows */}
+      <motion.div
+        aria-hidden
+        className="absolute pointer-events-none"
+        style={{
+          top: "10%", right: "-5%",
+          width: "55vw", height: "55vw",
+          background: `radial-gradient(ellipse, rgba(255,91,46,0.18) 0%, rgba(255,138,61,0.08) 40%, transparent 68%)`,
+          filter: "blur(50px)",
+          zIndex: 0,
+        }}
+        animate={{ opacity: [0.7, 1, 0.7] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute pointer-events-none"
+        style={{
+          bottom: "5%", left: "-8%",
+          width: "45vw", height: "45vw",
+          background: `radial-gradient(ellipse, rgba(199,67,67,0.15) 0%, transparent 65%)`,
+          filter: "blur(44px)",
+          zIndex: 0,
+        }}
+        animate={{ opacity: [0.65, 1, 0.95] }}
+        transition={{ duration: 13, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+      />
+
       <div ref={ref} className="max-w-screen-xl mx-auto w-full relative z-10">
         <motion.p
           id="who-belongs-here-label"

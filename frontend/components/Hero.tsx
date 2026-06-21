@@ -111,7 +111,7 @@ export default function Hero() {
     <section
       ref={sectionRef}
       className="relative min-h-screen flex flex-col justify-center items-start"
-      style={{ zIndex: 0 }}
+      style={{ zIndex: 0, overflow: "hidden" }}
     >
       {ready && constellationHeight != null && (
         <BuilderConstellation height={constellationHeight} />

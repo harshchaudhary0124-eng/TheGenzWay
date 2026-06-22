@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useReveal } from "@/hooks/useReveal";
-import BuilderStats from "@/components/BuilderStats";
+import BuilderStats from "@/components/ui/BuilderStats";
 import { C, DISPLAY, SCRIPT } from "@/lib/constants";
 
 
@@ -11,9 +11,10 @@ export default function Manifesto() {
 
   return (
     <section
+      id="manifesto"
       ref={ref}
-      className="flex flex-col justify-start relative"
-      style={{ marginTop: "-3vw", paddingTop: "1vw", minHeight: "84vh", paddingBottom: "5vh" }}
+      className="flex flex-col justify-start relative md:-mt-[3vw]"
+      style={{ paddingTop: "1vw", minHeight: "84vh", paddingBottom: "5vh" }}
     >
 
       {/* Ambient glows */}
@@ -90,8 +91,25 @@ export default function Manifesto() {
           </p>
         </motion.div>
 
+        {/* Mobile — simple left-aligned, no fixed pixel offsets */}
+        <p
+          className="md:hidden mt-6"
+          style={{
+            ...SCRIPT,
+            fontSize: "clamp(1.3rem, 5.5vw, 1.8rem)",
+            fontWeight: 700,
+            color: C.cream,
+            lineHeight: 1.4,
+            textShadow: `0 0 32px rgba(248, 247, 247, 0.8)`,
+          }}
+        >
+          So we built this place for them.
+        </p>
+
+        {/* Desktop — keeps hardcoded offsets and ID for ManifestoArrow */}
         <p
           id="so-we-built-text"
+          className="hidden md:block"
           style={{
             ...SCRIPT,
             fontSize: "clamp(1.9rem, 3vw, 2.6rem)",

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
+import Link from "next/link";
 import { C, DISPLAY, SANS } from "@/lib/constants";
-import BuilderConstellation from "@/components/BuilderConstellation";
+import BuilderConstellation from "@/components/ui/BuilderConstellation";
 
 export default function Hero() {
   const [ready, setReady] = useState(false);
@@ -22,6 +23,10 @@ export default function Hero() {
     if (!ready) return;
 
     function calcArrow() {
+      if (window.innerWidth < 768) {
+        setArrowPath(null);
+        return;
+      }
       const section = sectionRef.current;
       const cta = ctaRef.current;
       if (!section || !cta) return;
@@ -181,12 +186,16 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={ready ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65, delay: 1.1 }}
-            className="mt-10 flex flex-wrap items-center gap-4"
+            className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
           >
             <a
               ref={ctaRef}
-              href="#"
-              className="inline-flex items-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
+              href="#manifesto"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollBy({ top: 400, behavior: "smooth" });
+              }}
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
               style={{
                 backgroundColor: C.orange,
                 color: C.bg,
@@ -196,9 +205,9 @@ export default function Hero() {
             >
               Explore Builders <span>→</span>
             </a>
-            <a
-              href="#"
-              className="inline-flex items-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
+            <Link
+              href="/join"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
               style={{
                 backgroundColor: "transparent",
                 color: C.cream,
@@ -215,7 +224,7 @@ export default function Hero() {
               }}
             >
               Join The Movement <span>→</span>
-            </a>
+            </Link>
           </motion.div>
         </div>
       </div>

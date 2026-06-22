@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useReveal } from "@/hooks/useReveal";
 import { C, DISPLAY, SCRIPT, SANS } from "@/lib/constants";
 
@@ -65,7 +66,7 @@ export default function CTASection() {
             initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
             animate={inView ? { opacity: 1, scale: 1, rotate: -4 } : {}}
             transition={{ duration: 0.85, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute pointer-events-none"
+            className="hidden md:block absolute pointer-events-none"
             style={{
               top: "15%",
               left: "20%",
@@ -92,9 +93,9 @@ export default function CTASection() {
           transition={{ duration: 0.75, delay: 1.3 }}
           className="mt-16 md:mt-20 flex flex-col items-center gap-5"
         >
-          <a
-            href="#"
-            className="inline-flex items-center gap-4 px-10 py-5 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:brightness-110 hover:gap-6"
+          <Link
+            href="/join"
+            className="inline-flex items-center justify-center gap-4 w-full sm:w-auto px-10 py-5 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:brightness-110 hover:gap-6"
             style={{
               backgroundColor: C.orange,
               color: C.bg,
@@ -103,7 +104,7 @@ export default function CTASection() {
             }}
           >
             ENTER THE GENZ WAY <span>→</span>
-          </a>
+          </Link>
           <p className="text-sm" style={{ color: C.muted, ...SANS }}>
             Join builders creating the future together.
           </p>

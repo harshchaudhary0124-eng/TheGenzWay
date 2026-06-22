@@ -1,5 +1,4 @@
-import GlobalBackground from "@/components/ui/GlobalBackground";
-import Grain from "@/components/ui/Grain";
+import Background from "@/components/ui/Background";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Manifesto from "@/components/Manifesto";
@@ -13,8 +12,7 @@ import { C, SANS } from "@/lib/constants";
 export default function Page() {
   return (
     <div style={{ color: C.cream, ...SANS }}>
-      <GlobalBackground />
-      <Grain />
+      <Background />
       <Nav />
       <Hero />
       <div style={{ position: "relative" }}>

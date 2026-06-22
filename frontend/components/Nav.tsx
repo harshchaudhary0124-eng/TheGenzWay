@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { C, SANS } from "@/lib/constants";
 
 const NAV_LINKS: { label: string; href: string }[] = [
@@ -12,6 +13,7 @@ const NAV_LINKS: { label: string; href: string }[] = [
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -41,16 +43,24 @@ export default function Nav() {
           </Link>
 
           <div className="hidden md:flex items-center gap-10">
-            {NAV_LINKS.map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                className="text-xs tracking-wider uppercase transition-opacity duration-200 hover:opacity-100 opacity-60"
-                style={{ color: C.cream }}
-              >
-                {label}
-              </Link>
-            ))}
+            {NAV_LINKS.map(({ label, href }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={label}
+                  href={href}
+                  className="text-xs tracking-wider uppercase transition-all duration-200"
+                  style={{
+                    color: active ? C.orange : C.cream,
+                    opacity: active ? 1 : 0.6,
+                    borderBottom: active ? `1px solid ${C.orange}` : "1px solid transparent",
+                    paddingBottom: "2px",
+                  }}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-4">
@@ -77,17 +87,20 @@ export default function Nav() {
             className="md:hidden px-6 pb-6 flex flex-col gap-5"
             style={{ backgroundColor: C.bg }}
           >
-            {NAV_LINKS.map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                className="text-sm uppercase tracking-widest"
-                style={{ color: C.muted, ...SANS }}
-                onClick={() => setOpen(false)}
-              >
-                {label}
-              </Link>
-            ))}
+            {NAV_LINKS.map(({ label, href }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={label}
+                  href={href}
+                  className="text-sm uppercase tracking-widest"
+                  style={{ color: active ? C.orange : C.muted, ...SANS }}
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </div>
         )}
       </nav>

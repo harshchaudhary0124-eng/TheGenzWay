@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node -e \"var cp=require('child_process');cp.spawnSync(process.platform==='win32'?'npx.cmd':'npx',['kill-port','3010'],{stdio:'pipe'})\"",
-    "dev": "next dev",
+    "predev": "node -e \"var cp=require('child_process');cp.spawnSync(process.platform==='win32'?'npx.cmd':'npx',['kill-port','3000'],{stdio:'pipe'})\"",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { C, SANS } from "@/lib/constants";
@@ -46,19 +47,26 @@ export default function Nav() {
             {NAV_LINKS.map(({ label, href }) => {
               const active = pathname === href;
               return (
-                <Link
+                <motion.div
                   key={label}
-                  href={href}
-                  className="text-xs tracking-wider uppercase transition-all duration-200"
-                  style={{
-                    color: active ? C.orange : C.cream,
-                    opacity: active ? 1 : 0.6,
-                    borderBottom: active ? `1px solid ${C.orange}` : "1px solid transparent",
-                    paddingBottom: "2px",
-                  }}
+                  whileHover={{ scale: 1.12 }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                  style={{ display: "inline-block" }}
                 >
-                  {label}
-                </Link>
+                  <Link
+                    href={href}
+                    className="text-xs tracking-wider uppercase transition-colors duration-200"
+                    style={{
+                      color: active ? C.orange : C.cream,
+                      opacity: active ? 1 : 0.6,
+                      borderBottom: active ? `1px solid ${C.orange}` : "1px solid transparent",
+                      paddingBottom: "2px",
+                    }}
+                  >
+                    {label}
+                  </Link>
+                </motion.div>
               );
             })}
           </div>
@@ -66,10 +74,17 @@ export default function Nav() {
           <div className="flex items-center gap-4">
             <Link
               href="/join"
-              className="text-xs px-5 py-2.5 font-semibold tracking-widest uppercase transition-all duration-300 hover:brightness-110"
+              className="text-xs px-5 py-2.5 font-semibold tracking-widest uppercase"
               style={{ backgroundColor: C.orange, color: C.bg }}
             >
-              ENTER →
+              <motion.span
+                style={{ display: "inline-block" }}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 500, damping: 18 }}
+              >
+                ENTER →
+              </motion.span>
             </Link>
             <button
               className="md:hidden text-xl leading-none"

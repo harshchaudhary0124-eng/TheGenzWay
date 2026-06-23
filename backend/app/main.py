@@ -1,15 +1,28 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from .config import settings
-from .database import engine, Base
+from .database import engine, Base, SessionLocal
 from .routes.auth import router as auth_router
 from . import models  # noqa: ensure all models are imported before create_all
 
-# Auto-create tables for SQLite dev only; for PostgreSQL run `alembic upgrade head`
+# ── SQLite dev setup ──────────────────────────────────────────────────────────
+# For PostgreSQL, run: cd backend && alembic upgrade head
 if "sqlite" in settings.DATABASE_URL:
+    # Drop user_onboarding if it still has the old `user_id` column so
+    # create_all can rebuild it with the correct (id, domain) composite PK.
+    with engine.connect() as _conn:
+        result = _conn.execute(text(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='user_onboarding'"
+        ))
+        row = result.fetchone()
+        if row and "user_id" in (row[0] or ""):
+            _conn.execute(text("DROP TABLE IF EXISTS user_onboarding"))
+            _conn.commit()
+
     Base.metadata.create_all(bind=engine)
-    # Idempotent column additions for existing dev databases
+
     with engine.connect() as _conn:
         for _stmt in [
             "ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN DEFAULT 0 NOT NULL",
@@ -21,7 +34,25 @@ if "sqlite" in settings.DATABASE_URL:
             except Exception:
                 pass  # column already exists
 
-app = FastAPI(title="TheGenzWay API")
+
+# ── Lifespan: sync on every startup (all DB types) ───────────────────────────
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """
+    On startup, ensure user_onboarding.id always equals users.id for every
+    completed user.  The FK enforces value equality; this sync enforces row
+    existence — so no completed user is ever missing their onboarding rows.
+    """
+    from .services.sync import sync_onboarding_rows
+    db = SessionLocal()
+    try:
+        sync_onboarding_rows(db)
+    finally:
+        db.close()
+    yield
+
+
+app = FastAPI(title="TheGenzWay API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

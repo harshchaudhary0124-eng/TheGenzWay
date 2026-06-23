@@ -11,6 +11,7 @@ from ..schemas.auth import (
     TokenResponse, UserResponse, OnboardingProfileResponse,
 )
 from ..services.auth import hash_password, verify_password, create_access_token, decode_access_token
+from ..services.sync import sync_onboarding_rows
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 _bearer = HTTPBearer()
@@ -97,32 +98,25 @@ def complete_onboarding(
 ):
     import traceback, sys
     try:
-        av = list(body.answers.values())
+        # Remove existing onboarding rows for this user before inserting fresh ones
+        db.query(UserOnboarding).filter(UserOnboarding.id == current_user.id).delete()
 
-        existing = (
-            db.query(UserOnboarding)
-            .filter(UserOnboarding.user_id == current_user.id)
-            .first()
-        )
-        if existing:
-            existing.domain   = body.domain
-            existing.answer_1 = av[0] if len(av) > 0 else ""
-            existing.answer_2 = av[1] if len(av) > 1 else ""
-            existing.answer_3 = av[2] if len(av) > 2 else ""
-            existing.answer_4 = av[3] if len(av) > 3 else ""
-        else:
+        all_answers: dict = {}
+        for item in body.domains_data:
+            av = list(item.answers.values())
             db.add(UserOnboarding(
-                user_id   = current_user.id,
+                id        = current_user.id,
                 full_name = current_user.full_name,
-                domain    = body.domain,
+                domain    = item.domain,
                 answer_1  = av[0] if len(av) > 0 else "",
                 answer_2  = av[1] if len(av) > 1 else "",
                 answer_3  = av[2] if len(av) > 2 else "",
                 answer_4  = av[3] if len(av) > 3 else "",
             ))
+            all_answers[item.domain] = item.answers
 
         current_user.onboarding_completed = True
-        current_user.onboarding_answers   = {"domain": body.domain, "answers": body.answers}
+        current_user.onboarding_answers   = all_answers
         db.commit()
         db.refresh(current_user)
         return current_user
@@ -138,9 +132,27 @@ def get_onboarding_profile(
 ):
     profile = (
         db.query(UserOnboarding)
-        .filter(UserOnboarding.user_id == current_user.id)
+        .filter(UserOnboarding.id == current_user.id)
         .first()
     )
     if not profile:
         raise HTTPException(status_code=404, detail="Onboarding not completed yet")
     return profile
+
+
+@router.post("/sync-onboarding")
+def sync_onboarding(
+    _: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Back-fills user_onboarding rows for every user who has onboarding_completed=True
+    but whose per-domain rows are missing or out of date.  Safe to call multiple times.
+    """
+    import traceback, sys
+    try:
+        count = sync_onboarding_rows(db)
+        return {"synced_rows": count}
+    except Exception as exc:
+        traceback.print_exc(file=sys.stderr)
+        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc

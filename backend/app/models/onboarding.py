@@ -7,15 +7,13 @@ from ..database import Base
 class UserOnboarding(Base):
     __tablename__ = "user_onboarding"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(
+    id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
-        unique=True,
+        primary_key=True,
         index=True,
-        nullable=False,
     )
+    domain: Mapped[str] = mapped_column(String(100), primary_key=True)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    domain: Mapped[str] = mapped_column(String(100), nullable=False)
     answer_1: Mapped[str] = mapped_column(String(500), nullable=False)
     answer_2: Mapped[str] = mapped_column(String(500), nullable=False)
     answer_3: Mapped[str] = mapped_column(String(500), nullable=False)

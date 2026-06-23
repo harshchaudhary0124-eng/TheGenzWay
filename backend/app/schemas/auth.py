@@ -45,16 +45,19 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
-class OnboardingRequest(BaseModel):
+class DomainAnswers(BaseModel):
     domain: str
     answers: Dict[str, str]
 
 
+class OnboardingRequest(BaseModel):
+    domains_data: List[DomainAnswers]
+
+
 class OnboardingProfileResponse(BaseModel):
     id: int
-    user_id: int
-    full_name: str
     domain: str
+    full_name: str
     answer_1: str
     answer_2: str
     answer_3: str

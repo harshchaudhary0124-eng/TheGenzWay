@@ -22,20 +22,19 @@ CREATE INDEX        ix_users_id           ON users (id);
 CREATE UNIQUE INDEX ix_users_email        ON users (email);
 CREATE UNIQUE INDEX ix_users_profile_slug ON users (profile_slug);
 
--- Dedicated onboarding detail table — one row per user, linked by user_id.
--- Stores each answer as a named column for easy querying.
+-- Dedicated onboarding detail table — one row per (user, domain).
+-- `id` is the same value as users.id — no separate surrogate key.
+-- A user with N selected domains will have N rows here.
 CREATE TABLE user_onboarding (
-    id        SERIAL PRIMARY KEY,
-    user_id   INTEGER      NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    full_name VARCHAR(255) NOT NULL,
-    domain    VARCHAR(100) NOT NULL,
-    answer_1  VARCHAR(500) NOT NULL,
-    answer_2  VARCHAR(500) NOT NULL,
-    answer_3  VARCHAR(500) NOT NULL,
-    answer_4  VARCHAR(500) NOT NULL,
-    created_at TIMESTAMP   DEFAULT NOW(),
-    CONSTRAINT uq_user_onboarding_user UNIQUE (user_id)
+    id         INTEGER      NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    domain     VARCHAR(100) NOT NULL,
+    full_name  VARCHAR(255) NOT NULL,
+    answer_1   VARCHAR(500) NOT NULL,
+    answer_2   VARCHAR(500) NOT NULL,
+    answer_3   VARCHAR(500) NOT NULL,
+    answer_4   VARCHAR(500) NOT NULL,
+    created_at TIMESTAMP    DEFAULT NOW(),
+    PRIMARY KEY (id, domain)
 );
 
-CREATE INDEX ix_user_onboarding_id      ON user_onboarding (id);
-CREATE INDEX ix_user_onboarding_user_id ON user_onboarding (user_id);
+CREATE INDEX ix_user_onboarding_id ON user_onboarding (id);

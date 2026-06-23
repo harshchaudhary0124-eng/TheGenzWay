@@ -71,8 +71,7 @@ export function clearToken(): void {
 
 export async function apiSaveOnboarding(
   token: string,
-  domain: string,
-  answers: Record<string, string>,
+  domainsData: Array<{ domain: string; answers: Record<string, string> }>,
 ): Promise<UserProfile> {
   const res = await fetch(`${API}/auth/onboarding`, {
     method: "POST",
@@ -80,7 +79,7 @@ export async function apiSaveOnboarding(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ domain, answers }),
+    body: JSON.stringify({ domains_data: domainsData }),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Failed to save onboarding");

@@ -13,6 +13,8 @@ export type UserProfile = {
   country: string;
   city: string;
   profile_slug: string;
+  onboarding_completed: boolean;
+  onboarding_answers: Record<string, unknown>;
   created_at: string;
 };
 
@@ -65,4 +67,22 @@ export function getToken(): string | null {
 
 export function clearToken(): void {
   if (typeof window !== "undefined") localStorage.removeItem(TOKEN_KEY);
+}
+
+export async function apiSaveOnboarding(
+  token: string,
+  domain: string,
+  answers: Record<string, string>,
+): Promise<UserProfile> {
+  const res = await fetch(`${API}/auth/onboarding`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ domain, answers }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Failed to save onboarding");
+  return json as UserProfile;
 }

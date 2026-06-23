@@ -5,7 +5,11 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models.user import User
-from ..schemas.auth import RegisterRequest, LoginRequest, TokenResponse, UserResponse
+from ..models.onboarding import UserOnboarding
+from ..schemas.auth import (
+    RegisterRequest, LoginRequest, OnboardingRequest,
+    TokenResponse, UserResponse, OnboardingProfileResponse,
+)
 from ..services.auth import hash_password, verify_password, create_access_token, decode_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -83,3 +87,60 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/onboarding", response_model=UserResponse)
+def complete_onboarding(
+    body: OnboardingRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    import traceback, sys
+    try:
+        av = list(body.answers.values())
+
+        existing = (
+            db.query(UserOnboarding)
+            .filter(UserOnboarding.user_id == current_user.id)
+            .first()
+        )
+        if existing:
+            existing.domain   = body.domain
+            existing.answer_1 = av[0] if len(av) > 0 else ""
+            existing.answer_2 = av[1] if len(av) > 1 else ""
+            existing.answer_3 = av[2] if len(av) > 2 else ""
+            existing.answer_4 = av[3] if len(av) > 3 else ""
+        else:
+            db.add(UserOnboarding(
+                user_id   = current_user.id,
+                full_name = current_user.full_name,
+                domain    = body.domain,
+                answer_1  = av[0] if len(av) > 0 else "",
+                answer_2  = av[1] if len(av) > 1 else "",
+                answer_3  = av[2] if len(av) > 2 else "",
+                answer_4  = av[3] if len(av) > 3 else "",
+            ))
+
+        current_user.onboarding_completed = True
+        current_user.onboarding_answers   = {"domain": body.domain, "answers": body.answers}
+        db.commit()
+        db.refresh(current_user)
+        return current_user
+    except Exception as exc:
+        traceback.print_exc(file=sys.stderr)
+        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc
+
+
+@router.get("/onboarding-profile", response_model=OnboardingProfileResponse)
+def get_onboarding_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    profile = (
+        db.query(UserOnboarding)
+        .filter(UserOnboarding.user_id == current_user.id)
+        .first()
+    )
+    if not profile:
+        raise HTTPException(status_code=404, detail="Onboarding not completed yet")
+    return profile

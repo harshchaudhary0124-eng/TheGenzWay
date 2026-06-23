@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, field_validator
-from typing import List
+from typing import Any, Dict, List
 from datetime import datetime
 
 
@@ -45,6 +45,25 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class OnboardingRequest(BaseModel):
+    domain: str
+    answers: Dict[str, str]
+
+
+class OnboardingProfileResponse(BaseModel):
+    id: int
+    user_id: int
+    full_name: str
+    domain: str
+    answer_1: str
+    answer_2: str
+    answer_3: str
+    answer_4: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class UserResponse(BaseModel):
     id: int
     full_name: str
@@ -54,6 +73,8 @@ class UserResponse(BaseModel):
     country: str
     city: str
     profile_slug: str
+    onboarding_completed: bool
+    onboarding_answers: Dict[str, Any]
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -17,17 +17,6 @@ export type DiscoveredPerson = {
   profile_slug: string;
 };
 
-export async function apiGetPersonProfile(token: string, userId: number): Promise<DiscoveredPerson> {
-  const res = await fetch(`${API}/discover/people/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}: ${body || "Profile not found"}`);
-  }
-  return res.json() as Promise<DiscoveredPerson>;
-}
-
 export async function apiDiscoverPeople(token: string): Promise<DiscoveredPerson[]> {
   const res = await fetch(`${API}/discover/people`, {
     headers: { Authorization: `Bearer ${token}` },

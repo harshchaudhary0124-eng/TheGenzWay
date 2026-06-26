@@ -6,11 +6,10 @@ import Background from "@/components/ui/Background";
 import WelcomeNavbar from "@/components/WelcomeNavbar";
 import PersonCard from "@/components/PersonCard";
 import AddToForumModal from "@/components/AddToForumModal";
-import ProfileModal from "@/components/ProfileModal";
 import { C, DISPLAY, SANS, SCRIPT } from "@/lib/constants";
 import { getToken, apiGetMe } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
-import { apiDiscoverPeople, apiGetPersonProfile } from "@/lib/discover";
+import { apiDiscoverPeople } from "@/lib/discover";
 import type { DiscoveredPerson } from "@/lib/discover";
 import { apiGetInvites, apiGetMyForums } from "@/lib/forum";
 import type { DiscussionForum, ForumInvite } from "@/lib/forum";
@@ -23,53 +22,12 @@ export default function WelcomePage() {
   const [forums, setForums] = useState<DiscussionForum[]>([]);
   const [loadingPeople, setLoadingPeople] = useState(true);
   const [forumTarget, setForumTarget] = useState<DiscoveredPerson | null>(null);
-  const [profilePerson, setProfilePerson] = useState<DiscoveredPerson | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileError, setProfileError] = useState<string | null>(null);
 
   const refreshPanels = useCallback(async (token: string) => {
     const [inv, f] = await Promise.all([apiGetInvites(token), apiGetMyForums(token)]);
     setInvites(inv);
     setForums(f);
   }, []);
-
-  const openProfileById = useCallback(async (userId: number) => {
-    const token = getToken();
-    if (!token) return;
-
-    setProfileLoading(true);
-    setProfileError(null);
-    setProfilePerson(null);
-
-    try {
-      // Always fetch fresh — the endpoint returns ALL domains with real data
-      const person = await apiGetPersonProfile(token, userId);
-      setProfilePerson(person);
-    } catch {
-      // Fetch failed: fall back to whatever cached data we have
-      const cachedPerson = people.find(p => p.id === userId);
-      if (cachedPerson) {
-        setProfilePerson(cachedPerson);
-      } else {
-        const invite = invites.find(inv => inv.sender.id === userId);
-        if (invite) {
-          setProfilePerson({
-            id: invite.sender.id,
-            full_name: invite.sender.full_name,
-            city: invite.sender.city,
-            country: invite.sender.country,
-            interested_domains: invite.sender.interested_domains,
-            matched_domains: invite.sender.matched_domains,
-            profile_slug: "",
-          });
-        } else {
-          setProfileError("This profile isn't available right now.");
-        }
-      }
-    } finally {
-      setProfileLoading(false);
-    }
-  }, [people, invites]);
 
   useEffect(() => {
     const token = getToken();
@@ -127,7 +85,6 @@ export default function WelcomePage() {
           const token = getToken();
           if (token) refreshPanels(token);
         }}
-        onViewProfile={openProfileById}
       />
 
       {/* Forum modal */}
@@ -142,14 +99,6 @@ export default function WelcomePage() {
           }}
         />
       )}
-
-      {/* Profile modal */}
-      <ProfileModal
-        person={profilePerson}
-        loading={profileLoading}
-        error={profileError}
-        onClose={() => { setProfilePerson(null); setProfileError(null); }}
-      />
 
       <main
         style={{
@@ -246,7 +195,6 @@ export default function WelcomePage() {
                       person={person}
                       index={i}
                       onAddToForum={setForumTarget}
-                      onViewProfile={(p) => openProfileById(p.id)}
                     />
                   </div>
                 ))}

@@ -14,7 +14,8 @@ from ..schemas.forum import (
     MatchedDomainInfo,
 )
 from ..routes.auth import get_current_user
-from ..routes.discover import _load_completed_domains, _identity_summary
+from ..routes.discover import _identity_summary, _row_to_answers
+from ..models.onboarding import UserOnboarding
 
 router = APIRouter(prefix="/forums", tags=["forums"])
 
@@ -80,16 +81,30 @@ def get_invites(
         if not sender or not forum:
             continue
         sender_domains: list[str] = sender.interested_domains or []
-        sender_answers = _load_completed_domains(sender.id, sender_domains, db) or {}
-        sender_matched: list[MatchedDomainInfo] = [
-            MatchedDomainInfo(
+        # Read each domain row individually so a single incomplete domain
+        # doesn't blank out all the others (replaces the all-or-nothing
+        # _load_completed_domains approach).
+        sender_rows = (
+            db.query(UserOnboarding)
+            .filter(UserOnboarding.id == sender.id)
+            .all()
+        )
+        sender_row_map = {r.domain: r for r in sender_rows}
+        sender_json: dict = sender.onboarding_answers or {}
+        sender_matched: list[MatchedDomainInfo] = []
+        for domain in sender_domains:
+            row = sender_row_map.get(domain)
+            if row:
+                answers: dict = _row_to_answers(row, domain)
+            else:
+                raw: dict = sender_json.get(domain, {})
+                answers = {k: str(v) for k, v in raw.items()} if raw else {}
+            sender_matched.append(MatchedDomainInfo(
                 domain=domain,
-                onboarding_answers=sender_answers.get(domain, {}),
-                identity_summary=_identity_summary(domain, sender_answers.get(domain, {})),
+                onboarding_answers=answers,
+                identity_summary=_identity_summary(domain, answers),
                 why_matched="",
-            )
-            for domain in sender_domains
-        ]
+            ))
         result.append(
             ForumInviteResponse(
                 id=invite.id,

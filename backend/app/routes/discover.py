@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import Any, Optional
 
@@ -168,50 +168,6 @@ def _why_matched(domain: str, current: dict, target: dict) -> str:
 
 
 router = APIRouter(prefix="/discover", tags=["discover"])
-
-
-@router.get("/people/{user_id}")
-def get_person_profile(
-    user_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> dict[str, Any]:
-    person = db.query(User).filter(User.id == user_id).first()
-    if not person:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    person_domains: list[str] = person.interested_domains or []
-
-    # Load individual rows directly — don't use _load_completed_domains
-    # because that silently drops ALL answers when any single domain is
-    # incomplete. Here we return whatever data exists per domain.
-    rows = (
-        db.query(UserOnboarding)
-        .filter(UserOnboarding.id == person.id)
-        .all()
-    )
-    row_map: dict[str, UserOnboarding] = {r.domain: r for r in rows}
-
-    matched_domains: list[dict[str, Any]] = []
-    for domain in person_domains:
-        row = row_map.get(domain)
-        answers = _row_to_answers(row, domain) if row else {}
-        matched_domains.append({
-            "domain": domain,
-            "onboarding_answers": answers,
-            "identity_summary": _identity_summary(domain, answers),
-            "why_matched": "",
-        })
-
-    return {
-        "id": person.id,
-        "full_name": person.full_name,
-        "city": person.city,
-        "country": person.country,
-        "matched_domains": matched_domains,
-        "interested_domains": person_domains,
-        "profile_slug": person.profile_slug,
-    }
 
 
 @router.get("/people")

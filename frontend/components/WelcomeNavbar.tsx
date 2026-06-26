@@ -14,10 +14,9 @@ interface Props {
   invites: ForumInvite[];
   forums: DiscussionForum[];
   onRefresh: () => void;
-  onViewProfile: (userId: number) => void;
 }
 
-export default function WelcomeNavbar({ user, invites, forums, onRefresh, onViewProfile }: Props) {
+export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Props) {
   const router = useRouter();
   const [panel, setPanel] = useState<"invites" | "forums" | null>(null);
   const [acting, setActing] = useState<number | null>(null);
@@ -291,38 +290,17 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh, onView
                     >
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <button
-                            onClick={() => { setPanel(null); onViewProfile(invite.sender.id); }}
+                          <span
                             style={{
-                              background: "transparent",
-                              border: "none",
-                              padding: 0,
-                              cursor: "pointer",
-                              textAlign: "left",
-                              marginBottom: "2px",
+                              color: C.cream,
+                              fontSize: "0.82rem",
+                              fontWeight: 600,
                               display: "block",
+                              marginBottom: "2px",
                             }}
                           >
-                            <span
-                              style={{
-                                color: C.cream,
-                                fontSize: "0.82rem",
-                                fontWeight: 600,
-                                borderBottom: `1px solid rgba(255,91,46,0.4)`,
-                                transition: "color 0.15s ease, border-color 0.15s ease",
-                              }}
-                              onMouseEnter={e => {
-                                (e.currentTarget as HTMLSpanElement).style.color = C.orange;
-                                (e.currentTarget as HTMLSpanElement).style.borderBottomColor = C.orange;
-                              }}
-                              onMouseLeave={e => {
-                                (e.currentTarget as HTMLSpanElement).style.color = C.cream;
-                                (e.currentTarget as HTMLSpanElement).style.borderBottomColor = "rgba(255,91,46,0.4)";
-                              }}
-                            >
-                              {invite.sender.full_name}
-                            </span>
-                          </button>
+                            {invite.sender.full_name}
+                          </span>
                           <p style={{ color: C.muted, fontSize: "0.72rem", marginBottom: "6px" }}>
                             {invite.sender.city}, {invite.sender.country}
                           </p>

@@ -9,11 +9,10 @@ import { DOMAIN_ANSWER_KEYS, DOMAIN_ANSWER_LABELS } from "@/lib/discover";
 interface Props {
   person: DiscoveredPerson;
   onAddToForum: (person: DiscoveredPerson) => void;
-  onViewProfile: (person: DiscoveredPerson) => void;
   index: number;
 }
 
-export default function PersonCard({ person, onAddToForum, onViewProfile, index }: Props) {
+export default function PersonCard({ person, onAddToForum, index }: Props) {
   const [hovered, setHovered] = useState(false);
 
   const primaryMatch = person.matched_domains[0];
@@ -254,7 +253,6 @@ export default function PersonCard({ person, onAddToForum, onViewProfile, index 
           </button>
 
           <button
-            onClick={() => onViewProfile(person)}
             style={{
               padding: "9px 14px",
               background: "transparent",
@@ -276,7 +274,7 @@ export default function PersonCard({ person, onAddToForum, onViewProfile, index 
               (e.currentTarget as HTMLButtonElement).style.color = "rgba(245,242,235,0.45)";
             }}
           >
-            View Profile →
+            Hello
           </button>
         </div>
       </div>

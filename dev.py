@@ -23,13 +23,27 @@ def kill_port(port: int) -> None:
             f'netstat -ano | findstr ":{port} "',
             shell=True, capture_output=True, text=True,
         )
+        pids_killed = set()
         for line in result.stdout.strip().splitlines():
             parts = line.strip().split()
             if len(parts) >= 5 and f":{port}" in parts[1] and parts[3] == "LISTENING":
-                subprocess.run(
-                    ["taskkill", "/F", "/PID", parts[-1]],
+                pid = parts[-1]
+                if pid in pids_killed:
+                    continue
+                pids_killed.add(pid)
+                # Try taskkill first, then PowerShell Stop-Process as fallback
+                r = subprocess.run(
+                    ["taskkill", "/F", "/PID", pid],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 )
+                if r.returncode != 0:
+                    subprocess.run(
+                        ["powershell", "-Command", f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    )
+        # Wait for the port to be released
+        if pids_killed:
+            time.sleep(1.0)
     else:
         subprocess.run(
             ["fuser", "-k", f"{port}/tcp"],

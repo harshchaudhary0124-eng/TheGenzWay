@@ -209,17 +209,17 @@ def discover_people(
         if not shared:
             continue
 
-        shared_set = set(shared)
+        # Render only matching (shared) domains — not every candidate domain —
+        # so each card shows just the domains in common with the current user.
         matched_domains: list[dict[str, Any]] = []
-        for domain in candidate_domains:
+        for domain in shared:
             target_ans = candidate_answers[domain]
             current_ans = current_domain_answers.get(domain, {})
             matched_domains.append({
                 "domain": domain,
                 "onboarding_answers": target_ans,
                 "identity_summary": _identity_summary(domain, target_ans),
-                # why_matched only makes sense for domains the current user also has
-                "why_matched": _why_matched(domain, current_ans, target_ans) if domain in shared_set else "",
+                "why_matched": _why_matched(domain, current_ans, target_ans),
             })
 
         result.append({

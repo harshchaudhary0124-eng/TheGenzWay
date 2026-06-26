@@ -98,28 +98,50 @@ def complete_onboarding(
 ):
     import traceback, sys
     try:
+        required_domains: list[str] = current_user.interested_domains or []
+        submitted_map = {item.domain: item.answers for item in body.domains_data}
+
+        # Every domain the user selected must be present with all 4 non-empty answers
+        missing = [d for d in required_domains if d not in submitted_map]
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Onboarding incomplete — answers missing for: {', '.join(missing)}",
+            )
+
+        for domain in required_domains:
+            answers = submitted_map[domain]
+            if len(answers) < 4 or any(not str(v).strip() for v in answers.values()):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Incomplete answers for domain: {domain} — all 4 questions must be answered",
+                )
+
         # Remove existing onboarding rows for this user before inserting fresh ones
         db.query(UserOnboarding).filter(UserOnboarding.id == current_user.id).delete()
 
         all_answers: dict = {}
-        for item in body.domains_data:
-            av = list(item.answers.values())
+        for domain in required_domains:
+            answers = submitted_map[domain]
+            av = list(answers.values())
             db.add(UserOnboarding(
                 id        = current_user.id,
                 full_name = current_user.full_name,
-                domain    = item.domain,
+                domain    = domain,
                 answer_1  = av[0] if len(av) > 0 else "",
                 answer_2  = av[1] if len(av) > 1 else "",
                 answer_3  = av[2] if len(av) > 2 else "",
                 answer_4  = av[3] if len(av) > 3 else "",
             ))
-            all_answers[item.domain] = item.answers
+            all_answers[domain] = answers
 
         current_user.onboarding_completed = True
         current_user.onboarding_answers   = all_answers
         db.commit()
         db.refresh(current_user)
         return current_user
+    except HTTPException:
+        raise
     except Exception as exc:
         traceback.print_exc(file=sys.stderr)
         raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc

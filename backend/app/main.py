@@ -5,6 +5,8 @@ from sqlalchemy import text
 from .config import settings
 from .database import engine, Base, SessionLocal
 from .routes.auth import router as auth_router
+from .routes.forum import router as forum_router
+from .routes.discover import router as discover_router
 from . import models  # noqa: ensure all models are imported before create_all
 
 # ── SQLite dev setup ──────────────────────────────────────────────────────────
@@ -66,6 +68,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(forum_router)
+app.include_router(discover_router)
 
 
 @app.get("/")

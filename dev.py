@@ -85,7 +85,7 @@ def main() -> None:
     time.sleep(0.5)
 
     backend = spawn(
-        f"uvicorn app.main:app --host 0.0.0.0 --port {BACKEND_PORT}",
+        f"uvicorn app.main:app --host 0.0.0.0 --port {BACKEND_PORT} --reload",
         cwd=os.path.join(ROOT, "backend"),
     )
     print(f"  [backend]  pid {backend.pid}")

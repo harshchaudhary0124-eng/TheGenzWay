@@ -24,7 +24,13 @@ export default function HomePage() {
     }
     apiGetMe(token)
       .then(u => {
-        if (u.onboarding_completed) {
+        const savedAnswers = u.onboarding_answers as Record<string, unknown>;
+        const allAnswered = u.interested_domains.every(
+          d => savedAnswers[d] && typeof savedAnswers[d] === "object" &&
+               Object.keys(savedAnswers[d] as object).length > 0
+        );
+
+        if (u.onboarding_completed && allAnswered) {
           router.replace("/welcome");
         } else {
           setUser(u);

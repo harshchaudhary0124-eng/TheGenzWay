@@ -274,7 +274,7 @@ export default function PersonCard({ person, onAddToForum, index }: Props) {
               (e.currentTarget as HTMLButtonElement).style.color = "rgba(245,242,235,0.45)";
             }}
           >
-            Hello
+            View Profile
           </button>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Background from "@/components/ui/Background";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { C, DISPLAY, SANS } from "@/lib/constants";
-import { getToken, apiGetMe, apiSaveOnboarding } from "@/lib/auth";
+import { getToken, apiGetMe, apiSaveOnboarding, getCachedUser } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 
 export default function HomePage() {
@@ -16,21 +16,35 @@ export default function HomePage() {
   const [submitting, setSubmitting] = useState(false);
   const [completedAnswers, setCompletedAnswers] = useState<Record<string, Record<string, string>>>({});
 
+  // Warm the bundle for the route we redirect completed users to.
+  useEffect(() => { router.prefetch("/welcome"); }, [router]);
+
   useEffect(() => {
     const token = getToken();
     if (!token) {
       router.replace("/login");
       return;
     }
+
+    const isComplete = (u: UserProfile) => {
+      const savedAnswers = u.onboarding_answers as Record<string, unknown>;
+      return u.onboarding_completed && u.interested_domains.every(
+        d => savedAnswers[d] && typeof savedAnswers[d] === "object" &&
+             Object.keys(savedAnswers[d] as object).length > 0
+      );
+    };
+
+    // Instant paint from cache: if the user still needs onboarding, render it
+    // immediately instead of waiting on the network round-trip.
+    const cached = getCachedUser();
+    if (cached && !isComplete(cached)) {
+      setUser(cached);
+      setLoading(false);
+    }
+
     apiGetMe(token)
       .then(u => {
-        const savedAnswers = u.onboarding_answers as Record<string, unknown>;
-        const allAnswered = u.interested_domains.every(
-          d => savedAnswers[d] && typeof savedAnswers[d] === "object" &&
-               Object.keys(savedAnswers[d] as object).length > 0
-        );
-
-        if (u.onboarding_completed && allAnswered) {
+        if (isComplete(u)) {
           router.replace("/welcome");
         } else {
           setUser(u);

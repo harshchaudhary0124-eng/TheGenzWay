@@ -53,7 +53,36 @@ export async function apiGetMe(token: string): Promise<UserProfile> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Unauthorized");
-  return res.json() as Promise<UserProfile>;
+  const user = (await res.json()) as UserProfile;
+  setCachedUser(user);
+  return user;
+}
+
+const USER_CACHE_KEY = "tgw_user";
+
+/** Last known profile, kept in sessionStorage so protected pages can paint
+ *  instantly on navigation while apiGetMe revalidates in the background. */
+export function getCachedUser(): UserProfile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(USER_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as UserProfile) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedUser(user: UserProfile): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+  } catch {
+    /* storage unavailable — non-fatal */
+  }
+}
+
+export function clearCachedUser(): void {
+  if (typeof window !== "undefined") sessionStorage.removeItem(USER_CACHE_KEY);
 }
 
 export function saveToken(token: string): void {
@@ -67,6 +96,7 @@ export function getToken(): string | null {
 
 export function clearToken(): void {
   if (typeof window !== "undefined") localStorage.removeItem(TOKEN_KEY);
+  clearCachedUser();
 }
 
 export async function apiSaveOnboarding(

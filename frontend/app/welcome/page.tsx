@@ -7,7 +7,7 @@ import WelcomeNavbar from "@/components/WelcomeNavbar";
 import PersonCard from "@/components/PersonCard";
 import AddToForumModal from "@/components/AddToForumModal";
 import { C, DISPLAY, SANS, SCRIPT } from "@/lib/constants";
-import { getToken, apiGetMe } from "@/lib/auth";
+import { getToken, apiGetMe, getCachedUser } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 import { apiDiscoverPeople } from "@/lib/discover";
 import type { DiscoveredPerson } from "@/lib/discover";
@@ -18,6 +18,9 @@ export default function WelcomePage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [people, setPeople] = useState<DiscoveredPerson[]>([]);
+
+  // Warm the bundle for the only route we redirect to, so the hop is instant.
+  useEffect(() => { router.prefetch("/home"); }, [router]);
   const [invites, setInvites] = useState<ForumInvite[]>([]);
   const [forums, setForums] = useState<DiscussionForum[]>([]);
   const [loadingPeople, setLoadingPeople] = useState(true);
@@ -32,6 +35,10 @@ export default function WelcomePage() {
   useEffect(() => {
     const token = getToken();
     if (!token) { router.replace("/login"); return; }
+
+    // Instant paint from the last known profile; apiGetMe below revalidates.
+    const cached = getCachedUser();
+    if (cached && cached.onboarding_completed) setUser(cached);
 
     apiGetMe(token)
       .then(async u => {

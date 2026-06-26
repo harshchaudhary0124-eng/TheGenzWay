@@ -278,6 +278,12 @@ export default function JoinForm() {
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
 
+  // Warm the post-register routes so the redirect after submit is instant.
+  useEffect(() => {
+    router.prefetch("/home");
+    router.prefetch("/welcome");
+  }, [router]);
+
   const errors = validate(form);
   const isValid = Object.keys(errors).length === 0;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,12 @@ export default function LoginForm() {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
+
+  // Warm the post-login routes so the redirect after submit is instant.
+  useEffect(() => {
+    router.prefetch("/home");
+    router.prefetch("/welcome");
+  }, [router]);
 
   const errors = validate(form);
   const isValid = Object.keys(errors).length === 0;

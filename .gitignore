@@ -49,3 +49,6 @@ next-env.d.ts
 # SQLite dev database
 *.db
 *.sqlite
+
+# Uploaded forum attachments (local-disk storage)
+backend/uploads/

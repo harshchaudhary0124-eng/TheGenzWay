@@ -424,10 +424,27 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                   forums.map(forum => (
                     <div
                       key={forum.id}
+                      role="link"
+                      tabIndex={0}
+                      onClick={() => {
+                        setPanel(null);
+                        router.push(`/forums/${forum.id}`);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setPanel(null);
+                          router.push(`/forums/${forum.id}`);
+                        }
+                      }}
                       style={{
                         padding: "14px 18px",
                         borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        cursor: "pointer",
+                        transition: "background 0.15s ease",
                       }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       <p style={{ color: C.cream, fontSize: "0.84rem", fontWeight: 600, marginBottom: "3px" }}>
                         {forum.name}

@@ -14,6 +14,11 @@ class DiscussionForum(Base):
     creator_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    # Shareable join link token ("Add a builder"). Lazily generated on first
+    # request; opening /forums/join/{token} auto-adds the visitor as a member.
+    join_token: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, unique=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

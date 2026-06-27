@@ -137,7 +137,7 @@ function Combobox({ value, onChange, options, placeholder, disabled = false, fre
           autoComplete="off"
           style={{
             width: "100%",
-            padding: "11px 36px 11px 14px",
+            padding: "9px 36px 9px 14px",
             background: disabled ? "rgba(245,242,235,0.02)" : "rgba(245,242,235,0.04)",
             border: `1px solid ${hasError ? "rgba(199,67,67,0.6)" : open ? "rgba(255,91,46,0.45)" : "rgba(245,242,235,0.11)"}`,
             color: disabled ? C.muted : C.cream,
@@ -215,7 +215,7 @@ function Combobox({ value, onChange, options, placeholder, disabled = false, fre
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label style={{ display: "block", marginBottom: "6px", fontSize: "0.7rem", color: C.muted, letterSpacing: "0.15em", textTransform: "uppercase", ...SANS }}>
+    <label style={{ display: "block", marginBottom: "4px", fontSize: "0.7rem", color: C.muted, letterSpacing: "0.15em", textTransform: "uppercase", ...SANS }}>
       {children}
     </label>
   );
@@ -240,7 +240,7 @@ function InputField({
           placeholder={placeholder}
           style={{
             width: "100%",
-            padding: "11px 14px",
+            padding: "9px 14px",
             paddingRight: suffix ? "42px" : "14px",
             background: "rgba(245,242,235,0.04)",
             border: `1px solid ${hasError ? "rgba(199,67,67,0.6)" : "rgba(245,242,235,0.11)"}`,
@@ -336,7 +336,7 @@ export default function JoinForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 pt-24" style={{ ...SANS }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-4 pt-20" style={{ ...SANS }}>
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -398,16 +398,24 @@ export default function JoinForm() {
         </div>
 
         {/* ── Right form panel ── */}
-        <div className="flex-1 p-6 md:p-9">
-          <p
-            className="uppercase mb-6"
-            style={{ ...DISPLAY, fontSize: "clamp(1.2rem, 2.5vw, 1.8rem)", color: C.cream, letterSpacing: "-0.01em" }}
-          >
-            Create Account
-          </p>
+        <div className="flex-1 p-5 md:p-7">
+          <div className="mb-4">
+            <p
+              className="uppercase"
+              style={{ ...DISPLAY, fontSize: "clamp(1.2rem, 2.5vw, 1.8rem)", color: C.cream, letterSpacing: "-0.01em" }}
+            >
+              Create Account
+            </p>
+            <p className="text-sm mt-2" style={{ color: C.muted, ...SANS }}>
+              Already have an account?{" "}
+              <Link href="/login" style={{ color: C.orange, textDecoration: "none" }}>
+                Log in →
+              </Link>
+            </p>
+          </div>
 
           <form onSubmit={handleSubmit} noValidate>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
 
               {/* Full Name */}
               <div>
@@ -484,7 +492,7 @@ export default function JoinForm() {
                     onBlur={touch("qualification")}
                     style={{
                       width: "100%",
-                      padding: "11px 36px 11px 14px",
+                      padding: "9px 36px 9px 14px",
                       background: "rgba(245,242,235,0.04)",
                       border: `1px solid ${touched.qualification && errors.qualification ? "rgba(199,67,67,0.6)" : "rgba(245,242,235,0.11)"}`,
                       color: form.qualification ? C.cream : C.muted,
@@ -526,7 +534,7 @@ export default function JoinForm() {
                         disabled={maxed}
                         onClick={() => toggleDomain(d)}
                         style={{
-                          padding: "6px 12px",
+                          padding: "5px 11px",
                           fontSize: "0.72rem",
                           letterSpacing: "0.05em",
                           border: `1px solid ${selected ? C.orange : "rgba(245,242,235,0.13)"}`,
@@ -592,12 +600,12 @@ export default function JoinForm() {
               )}
 
               {/* CTA */}
-              <div className="pt-2">
+              <div className="pt-1">
                 <motion.button
                   type="submit"
                   disabled={submitting}
                   whileTap={isValid ? { scale: 0.97 } : {}}
-                  className="w-full py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300"
+                  className="w-full py-3 text-sm font-semibold tracking-widest uppercase transition-all duration-300"
                   style={{
                     backgroundColor: isValid ? C.orange : "rgba(255,91,46,0.3)",
                     color: isValid ? C.bg : `rgba(8,8,8,0.5)`,
@@ -613,13 +621,6 @@ export default function JoinForm() {
 
             </div>
           </form>
-
-          <p className="mt-5 text-center text-sm" style={{ color: C.muted, ...SANS }}>
-            Already have an account?{" "}
-            <Link href="/login" style={{ color: C.orange, textDecoration: "none" }}>
-              Log in →
-            </Link>
-          </p>
         </div>
       </motion.div>
     </div>

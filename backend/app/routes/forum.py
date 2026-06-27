@@ -1,3 +1,5 @@
+import secrets
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -7,6 +9,8 @@ from ..models.user import User
 from ..models.forum import DiscussionForum, ForumMembership, ForumInvite
 from ..schemas.forum import (
     CreateForumRequest,
+    UpdateForumRequest,
+    InviteLinkResponse,
     SendInviteRequest,
     ForumResponse,
     ForumInviteResponse,
@@ -16,6 +20,7 @@ from ..schemas.forum import (
 from ..routes.auth import get_current_user
 from ..routes.discover import _identity_summary, _row_to_answers
 from ..models.onboarding import UserOnboarding
+from ..services.forum_access import require_membership
 
 router = APIRouter(prefix="/forums", tags=["forums"])
 
@@ -269,3 +274,114 @@ def reject_invite(
     invite.status = "rejected"
     db.commit()
     return {"message": "Rejected"}
+
+
+# ── forum settings / membership management ───────────────────────────────────
+@router.post("/join/{token}")
+def join_via_link(
+    token: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Auto-add the current user to the forum a share link points at."""
+    forum = (
+        db.query(DiscussionForum)
+        .filter(DiscussionForum.join_token == token)
+        .first()
+    )
+    if not forum:
+        raise HTTPException(status_code=404, detail="Invalid or expired invite link")
+
+    already = (
+        db.query(ForumMembership)
+        .filter(
+            ForumMembership.forum_id == forum.id,
+            ForumMembership.user_id == current_user.id,
+        )
+        .first()
+    )
+    if not already:
+        db.add(ForumMembership(forum_id=forum.id, user_id=current_user.id, role="member"))
+        db.commit()
+    return {"forum_id": forum.id}
+
+
+@router.patch("/{forum_id}", response_model=ForumResponse)
+def update_forum(
+    forum_id: int,
+    body: UpdateForumRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    forum = db.get(DiscussionForum, forum_id)
+    if not forum:
+        raise HTTPException(status_code=404, detail="Forum not found")
+    if forum.creator_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only the creator can edit this forum")
+
+    if body.name is not None:
+        if not body.name.strip():
+            raise HTTPException(status_code=400, detail="Forum name cannot be empty")
+        forum.name = body.name.strip()
+    if body.description is not None:
+        forum.description = body.description.strip() or None
+
+    db.commit()
+    db.refresh(forum)
+    member_count = (
+        db.query(ForumMembership).filter(ForumMembership.forum_id == forum.id).count()
+    )
+    return ForumResponse(
+        id=forum.id,
+        name=forum.name,
+        description=forum.description,
+        domain=forum.domain,
+        creator_id=forum.creator_id,
+        created_at=forum.created_at,
+        member_count=member_count,
+    )
+
+
+@router.post("/{forum_id}/leave", status_code=status.HTTP_204_NO_CONTENT)
+def leave_forum(
+    forum_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    membership = require_membership(db, forum_id, current_user.id)
+    if membership.role == "creator":
+        raise HTTPException(
+            status_code=400,
+            detail="The creator cannot leave their own forum",
+        )
+    db.delete(membership)
+    db.commit()
+
+
+@router.post("/{forum_id}/invite-link", response_model=InviteLinkResponse)
+def get_invite_link(
+    forum_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lazily generate (or return the existing) shareable join link. Any member."""
+    require_membership(db, forum_id, current_user.id)
+    forum = db.get(DiscussionForum, forum_id)
+    if forum.join_token is None:
+        # Regenerate on the rare collision so the unique constraint never trips.
+        for _ in range(5):
+            candidate = secrets.token_urlsafe(16)
+            exists = (
+                db.query(DiscussionForum)
+                .filter(DiscussionForum.join_token == candidate)
+                .first()
+            )
+            if not exists:
+                forum.join_token = candidate
+                break
+        db.commit()
+        db.refresh(forum)
+    return InviteLinkResponse(
+        token=forum.join_token,
+        url=f"/forums/join/{forum.join_token}",
+    )

@@ -9,6 +9,16 @@ class CreateForumRequest(BaseModel):
     domain: Optional[str] = None
 
 
+class UpdateForumRequest(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class InviteLinkResponse(BaseModel):
+    token: str
+    url: str
+
+
 class SendInviteRequest(BaseModel):
     recipient_id: int
     forum_id: Optional[int] = None

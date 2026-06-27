@@ -47,7 +47,10 @@ export default function LoginForm() {
     try {
       const { access_token } = await apiLogin(form.email, form.password);
       saveToken(access_token);
-      router.push("/home");
+      // Honor a ?next= return path (e.g. forum invite links). Only allow
+      // same-origin relative paths to avoid open-redirect abuse.
+      const next = new URLSearchParams(window.location.search).get("next");
+      router.push(next && next.startsWith("/") ? next : "/home");
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

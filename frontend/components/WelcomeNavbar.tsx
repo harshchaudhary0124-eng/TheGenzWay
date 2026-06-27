@@ -8,6 +8,9 @@ import type { UserProfile } from "@/lib/auth";
 import type { DiscussionForum, ForumInvite } from "@/lib/forum";
 import { apiAcceptInvite, apiRejectInvite } from "@/lib/forum";
 import { getToken, clearToken } from "@/lib/auth";
+import type { ProfileData } from "@/lib/profile";
+import { profileFromInviteSender } from "@/lib/profile";
+import ProfileModal from "@/components/ProfileModal";
 
 interface Props {
   user: UserProfile;
@@ -21,6 +24,7 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
   const [panel, setPanel] = useState<"invites" | "forums" | null>(null);
   const [acting, setActing] = useState<number | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [senderProfile, setSenderProfile] = useState<ProfileData | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -290,17 +294,36 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                     >
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <span
+                          <button
+                            onClick={() => {
+                              setSenderProfile(profileFromInviteSender(invite.sender));
+                              setPanel(null);
+                            }}
                             style={{
                               color: C.cream,
                               fontSize: "0.82rem",
                               fontWeight: 600,
                               display: "block",
                               marginBottom: "2px",
+                              padding: 0,
+                              background: "transparent",
+                              border: "none",
+                              textAlign: "left",
+                              cursor: "pointer",
+                              transition: "color 0.15s ease",
+                              ...SANS,
+                            }}
+                            onMouseEnter={e => {
+                              (e.currentTarget as HTMLButtonElement).style.color = C.orange;
+                              (e.currentTarget as HTMLButtonElement).style.textDecoration = "underline";
+                            }}
+                            onMouseLeave={e => {
+                              (e.currentTarget as HTMLButtonElement).style.color = C.cream;
+                              (e.currentTarget as HTMLButtonElement).style.textDecoration = "none";
                             }}
                           >
                             {invite.sender.full_name}
-                          </span>
+                          </button>
                           <p style={{ color: C.muted, fontSize: "0.72rem", marginBottom: "6px" }}>
                             {invite.sender.city}, {invite.sender.country}
                           </p>
@@ -676,6 +699,15 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
           </>
         )}
       </AnimatePresence>
+
+      {/* Sender profile modal — same view as discovery's "View Profile" */}
+      {senderProfile && (
+        <ProfileModal
+          profile={senderProfile}
+          highlightDomains={user.interested_domains}
+          onClose={() => setSenderProfile(null)}
+        />
+      )}
     </>
   );
 }

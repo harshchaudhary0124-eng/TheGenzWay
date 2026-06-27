@@ -1,4 +1,5 @@
 import type { DiscoveredPerson, ProfileDomain } from "@/lib/discover";
+import type { ForumInvite } from "@/lib/forum";
 
 // Canonical, viewer-independent shape of a user profile.
 //
@@ -24,5 +25,23 @@ export function profileFromDiscovered(person: DiscoveredPerson): ProfileData {
     city: person.city,
     country: person.country,
     domains: person.all_domains,
+  };
+}
+
+// Adapter: turn a forum invite's sender into the canonical profile shape.
+// The invite endpoint already returns one entry per domain the sender belongs
+// to (each with answers + identity summary), so `matched_domains` is the
+// sender's complete profile — we just drop `why_matched`, which is a
+// viewer-relative discovery hint the modal doesn't consume.
+export function profileFromInviteSender(sender: ForumInvite["sender"]): ProfileData {
+  return {
+    full_name: sender.full_name,
+    city: sender.city,
+    country: sender.country,
+    domains: sender.matched_domains.map(({ domain, onboarding_answers, identity_summary }) => ({
+      domain,
+      onboarding_answers,
+      identity_summary,
+    })),
   };
 }

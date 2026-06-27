@@ -7,12 +7,21 @@ export type MatchedDomain = {
   why_matched: string;
 };
 
+// A domain in a person's full profile — same as MatchedDomain without why_matched
+// (which only makes sense for domains shared with the viewer).
+export type ProfileDomain = {
+  domain: string;
+  onboarding_answers: Record<string, string>;
+  identity_summary: string;
+};
+
 export type DiscoveredPerson = {
   id: number;
   full_name: string;
   city: string;
   country: string;
   matched_domains: MatchedDomain[];
+  all_domains: ProfileDomain[];
   interested_domains: string[];
   profile_slug: string;
 };

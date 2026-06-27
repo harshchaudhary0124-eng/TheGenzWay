@@ -6,11 +6,13 @@ import Background from "@/components/ui/Background";
 import WelcomeNavbar from "@/components/WelcomeNavbar";
 import PersonCard from "@/components/PersonCard";
 import AddToForumModal from "@/components/AddToForumModal";
+import ProfileModal from "@/components/ProfileModal";
 import { C, DISPLAY, SANS, SCRIPT } from "@/lib/constants";
 import { getToken, apiGetMe, getCachedUser } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
 import { apiDiscoverPeople } from "@/lib/discover";
 import type { DiscoveredPerson } from "@/lib/discover";
+import { profileFromDiscovered } from "@/lib/profile";
 import { apiGetInvites, apiGetMyForums } from "@/lib/forum";
 import type { DiscussionForum, ForumInvite } from "@/lib/forum";
 
@@ -25,6 +27,7 @@ export default function WelcomePage() {
   const [forums, setForums] = useState<DiscussionForum[]>([]);
   const [loadingPeople, setLoadingPeople] = useState(true);
   const [forumTarget, setForumTarget] = useState<DiscoveredPerson | null>(null);
+  const [profileTarget, setProfileTarget] = useState<DiscoveredPerson | null>(null);
 
   const refreshPanels = useCallback(async (token: string) => {
     const [inv, f] = await Promise.all([apiGetInvites(token), apiGetMyForums(token)]);
@@ -104,6 +107,15 @@ export default function WelcomePage() {
             const token = getToken();
             if (token) refreshPanels(token);
           }}
+        />
+      )}
+
+      {/* Profile modal */}
+      {profileTarget && (
+        <ProfileModal
+          profile={profileFromDiscovered(profileTarget)}
+          highlightDomains={profileTarget.matched_domains.map(d => d.domain)}
+          onClose={() => setProfileTarget(null)}
         />
       )}
 
@@ -202,6 +214,7 @@ export default function WelcomePage() {
                       person={person}
                       index={i}
                       onAddToForum={setForumTarget}
+                      onViewProfile={setProfileTarget}
                     />
                   </div>
                 ))}

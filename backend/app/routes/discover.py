@@ -222,12 +222,24 @@ def discover_people(
                 "why_matched": _why_matched(domain, current_ans, target_ans),
             })
 
+        # Full profile: EVERY domain the candidate chose, with complete answers.
+        # Consumed by the "View Profile" modal, which must never show partial info.
+        all_domains: list[dict[str, Any]] = [
+            {
+                "domain": domain,
+                "onboarding_answers": candidate_answers[domain],
+                "identity_summary": _identity_summary(domain, candidate_answers[domain]),
+            }
+            for domain in candidate_domains
+        ]
+
         result.append({
             "id": candidate.id,
             "full_name": candidate.full_name,
             "city": candidate.city,
             "country": candidate.country,
             "matched_domains": matched_domains,
+            "all_domains": all_domains,
             "interested_domains": candidate_domains,
             "profile_slug": candidate.profile_slug,
         })

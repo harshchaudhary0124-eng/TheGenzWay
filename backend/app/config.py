@@ -77,6 +77,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _enforce_production(self) -> "Settings":
+        # Deployment dashboards (Render/Heroku) frequently introduce a leading/
+        # trailing space, a newline, or surrounding quotes when a value is pasted
+        # in. Strip those so an otherwise-valid Postgres URL isn't rejected.
+        self.DATABASE_URL = self.DATABASE_URL.strip().strip("'\"").strip()
         # PostgreSQL only. Normalize the `postgres://` scheme some providers emit
         # (Neon/Heroku) to the `postgresql://` form SQLAlchemy 2.x requires, then
         # reject anything that isn't PostgreSQL so SQLite can never creep back in.

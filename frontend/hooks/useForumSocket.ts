@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { wsUrl, type ChatMessage } from "@/lib/chat";
+import { trackMessageSent } from "@/lib/analytics";
 
 export type SocketStatus = "connecting" | "open" | "reconnecting" | "closed";
 
@@ -139,14 +140,17 @@ export function useForumSocket(
   }, [forumId, token]);
 
   const sendMessage = useCallback(
-    (clientId: string, content: string, replyToId?: number, attachmentIds?: number[]) =>
-      send({
+    (clientId: string, content: string, replyToId?: number, attachmentIds?: number[]) => {
+      const ok = send({
         type: "message",
         client_id: clientId,
         content,
         reply_to_id: replyToId ?? null,
         attachment_ids: attachmentIds ?? [],
-      }),
+      });
+      if (ok) trackMessageSent(); // anonymous counter only — no message content
+      return ok;
+    },
     [send],
   );
   const editMessage = useCallback(

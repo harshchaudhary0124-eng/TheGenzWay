@@ -406,12 +406,32 @@ export default function JoinForm() {
             >
               Create Account
             </p>
-            <p className="text-sm mt-2" style={{ color: C.muted, ...SANS }}>
+            <p className="mt-3" style={{ color: C.muted, ...SANS, fontSize: "0.95rem" }}>
               Already have an account?{" "}
-              <Link href="/login" style={{ color: C.orange, textDecoration: "none" }}>
-                Log in →
+              <Link
+                href="/login"
+                className="loginLink"
+                style={{ color: C.orange, ...SANS, fontWeight: 600 }}
+              >
+                Log in&nbsp;<span className="loginArrow">→</span>
               </Link>
             </p>
+            <style>{`
+              .loginLink {
+                position: relative;
+                white-space: nowrap;
+                text-decoration: none;
+                padding-bottom: 2px;
+                border-bottom: 1px solid rgba(255,91,46,0.45);
+                transition: border-color 0.25s ease, color 0.25s ease;
+              }
+              .loginLink:hover { border-color: ${C.glow}; color: ${C.glow}; }
+              .loginArrow {
+                display: inline-block;
+                transition: transform 0.25s ease;
+              }
+              .loginLink:hover .loginArrow { transform: translateX(3px); }
+            `}</style>
           </div>
 
           <form onSubmit={handleSubmit} noValidate>

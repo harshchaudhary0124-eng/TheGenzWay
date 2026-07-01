@@ -5,7 +5,16 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { C, DISPLAY, SANS } from "@/lib/constants";
-import { apiLogin, saveToken } from "@/lib/auth";
+import { apiLogin, saveToken, apiGetMe, type UserProfile } from "@/lib/auth";
+
+// Onboarding is complete only if the flag is set AND every selected domain has
+// answers saved — mirror of the guard used on /home and /welcome.
+function isOnboarded(u: UserProfile): boolean {
+  const answers = u.onboarding_answers as Record<string, unknown>;
+  return u.onboarding_completed && u.interested_domains.every(
+    d => answers[d] && typeof answers[d] === "object" && Object.keys(answers[d] as object).length > 0,
+  );
+}
 
 type LoginData = { email: string; password: string };
 type Errors = Partial<Record<keyof LoginData, string>>;
@@ -50,7 +59,15 @@ export default function LoginForm() {
       // Honor a ?next= return path (e.g. forum invite links). Only allow
       // same-origin relative paths to avoid open-redirect abuse.
       const next = new URLSearchParams(window.location.search).get("next");
-      router.push(next && next.startsWith("/") ? next : "/home");
+      if (next && next.startsWith("/")) {
+        router.push(next);
+        return;
+      }
+      // Resolve the profile once here (also populates the cache) and route
+      // straight to the final destination — avoids the /home → Loading →
+      // /welcome double-hop that each cost a round-trip.
+      const me = await apiGetMe(access_token);
+      router.push(isOnboarded(me) ? "/welcome" : "/home");
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

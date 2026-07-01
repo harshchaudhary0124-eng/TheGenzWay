@@ -54,7 +54,6 @@ export default function ForumSettingsModal({
 }) {
   const [name, setName] = useState(forum.name);
   const [description, setDescription] = useState(forum.description ?? "");
-  const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,24 +64,24 @@ export default function ForumSettingsModal({
   const [leaving, setLeaving] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
 
-  async function save() {
+  function save() {
     setError(null);
     setSavedMsg(null);
     if (!name.trim()) {
       setError("Forum name cannot be empty");
       return;
     }
-    setSaving(true);
-    try {
-      const res = await apiUpdateForum(token, forum.id, { name: name.trim(), description });
-      onUpdated({ name: res.name, description: res.description });
-      setSavedMsg("Saved");
-      setTimeout(() => setSavedMsg(null), 2000);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save");
-    } finally {
-      setSaving(false);
-    }
+    // Optimistic: reflect the rename immediately (top bar updates instantly);
+    // persist in the background and reconcile / surface any error after.
+    onUpdated({ name: name.trim(), description });
+    setSavedMsg("Saved");
+    setTimeout(() => setSavedMsg(null), 2000);
+    apiUpdateForum(token, forum.id, { name: name.trim(), description })
+      .then((res) => onUpdated({ name: res.name, description: res.description }))
+      .catch((e) => {
+        setSavedMsg(null);
+        setError(e instanceof Error ? e.message : "Failed to save");
+      });
   }
 
   async function generateLink() {
@@ -110,16 +109,12 @@ export default function ForumSettingsModal({
     }
   }
 
-  async function leave() {
-    setLeaving(true);
+  function leave() {
     setError(null);
-    try {
-      await apiLeaveForum(token, forum.id);
-      onLeft();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to leave forum");
-      setLeaving(false);
-    }
+    setLeaving(true);
+    // Navigate away immediately; the membership removal runs in the background.
+    apiLeaveForum(token, forum.id).catch(() => {});
+    onLeft();
   }
 
   return (
@@ -185,7 +180,6 @@ export default function ForumSettingsModal({
               <button
                 type="button"
                 onClick={save}
-                disabled={saving}
                 style={{
                   background: C.orange,
                   color: "#0A0A0A",
@@ -194,11 +188,10 @@ export default function ForumSettingsModal({
                   padding: "9px 18px",
                   fontWeight: 600,
                   fontSize: "0.84rem",
-                  cursor: saving ? "default" : "pointer",
-                  opacity: saving ? 0.6 : 1,
+                  cursor: "pointer",
                 }}
               >
-                {saving ? "Saving…" : "Save changes"}
+                Save changes
               </button>
               {savedMsg && <span style={{ color: "#5FA463", fontSize: "0.78rem" }}>{savedMsg}</span>}
             </div>

@@ -82,8 +82,11 @@ class ForumAttachment(Base):
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
-    # Path relative to the served /uploads mount, e.g. "forums/3/<uuid>.png".
-    stored_path: Mapped[str] = mapped_column(String(512), nullable=False)
+    # Cloudinary identifiers — the bytes live in Cloudinary, never on disk.
+    # public_id lets us manage/delete the object; secure_url is the HTTPS link
+    # served directly to the client.
+    cloudinary_public_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    secure_url: Mapped[str] = mapped_column(String(1024), nullable=False)
     content_type: Mapped[str] = mapped_column(String(120), nullable=False)
     size_bytes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)

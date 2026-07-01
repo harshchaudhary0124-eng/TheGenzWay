@@ -1,6 +1,7 @@
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -44,13 +45,16 @@ def get_my_forums(
         .order_by(DiscussionForum.created_at.desc())
         .all()
     )
+    # Member counts for all of these forums in one grouped query (was N+1).
+    count_map = dict(
+        db.query(ForumMembership.forum_id, func.count(ForumMembership.id))
+        .filter(ForumMembership.forum_id.in_(forum_ids))
+        .group_by(ForumMembership.forum_id)
+        .all()
+    )
     result = []
     for forum in forums:
-        member_count = (
-            db.query(ForumMembership)
-            .filter(ForumMembership.forum_id == forum.id)
-            .count()
-        )
+        member_count = count_map.get(forum.id, 0)
         result.append(
             ForumResponse(
                 id=forum.id,
@@ -79,22 +83,31 @@ def get_invites(
         .order_by(ForumInvite.created_at.desc())
         .all()
     )
+    if not invites:
+        return []
+
+    # Batch-load all senders, forums, and sender onboarding rows up front so the
+    # per-invite loop touches only in-memory dicts (was 3 queries per invite).
+    sender_ids = {inv.sender_id for inv in invites}
+    forum_ids = {inv.forum_id for inv in invites}
+    senders_map = {u.id: u for u in db.query(User).filter(User.id.in_(sender_ids)).all()}
+    forums_map = {
+        f.id: f for f in db.query(DiscussionForum).filter(DiscussionForum.id.in_(forum_ids)).all()
+    }
+    onboarding_by_sender: dict[int, dict[str, UserOnboarding]] = {}
+    for row in db.query(UserOnboarding).filter(UserOnboarding.id.in_(sender_ids)).all():
+        onboarding_by_sender.setdefault(row.id, {})[row.domain] = row
+
     result = []
     for invite in invites:
-        sender = db.get(User, invite.sender_id)
-        forum = db.get(DiscussionForum, invite.forum_id)
+        sender = senders_map.get(invite.sender_id)
+        forum = forums_map.get(invite.forum_id)
         if not sender or not forum:
             continue
         sender_domains: list[str] = sender.interested_domains or []
         # Read each domain row individually so a single incomplete domain
-        # doesn't blank out all the others (replaces the all-or-nothing
-        # _load_completed_domains approach).
-        sender_rows = (
-            db.query(UserOnboarding)
-            .filter(UserOnboarding.id == sender.id)
-            .all()
-        )
-        sender_row_map = {r.domain: r for r in sender_rows}
+        # doesn't blank out all the others.
+        sender_row_map = onboarding_by_sender.get(sender.id, {})
         sender_json: dict = sender.onboarding_answers or {}
         sender_matched: list[MatchedDomainInfo] = []
         for domain in sender_domains:

@@ -23,7 +23,7 @@ class ReplyPreview(BaseModel):
 # ── An uploaded file attached to a message / shared in the forum ─────────────
 class AttachmentInfo(BaseModel):
     id: int
-    url: str  # absolute or /uploads-relative; client prefixes with API base
+    url: str  # absolute https Cloudinary secure_url; loaded directly by the client
     filename: str
     content_type: str
     size_bytes: int

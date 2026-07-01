@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.database import Base  # noqa
 from app.config import settings
-from app.models import user  # noqa: register all models with Base.metadata
+import app.models  # noqa: F401 — import the package so EVERY model registers with Base.metadata
 
 alembic_config = context.config
 alembic_config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)

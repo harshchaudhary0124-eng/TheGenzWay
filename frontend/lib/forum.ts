@@ -1,3 +1,5 @@
+import { trackForumCreated, trackForumInvited, trackForumJoined } from "@/lib/analytics";
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 function authHeaders(token: string) {
@@ -59,6 +61,7 @@ export async function apiCreateForum(
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Failed to create forum");
+  trackForumCreated();
   return json as DiscussionForum;
 }
 
@@ -80,6 +83,7 @@ export async function apiSendInvite(
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Failed to send invite");
+  trackForumInvited();
 }
 
 export async function apiAcceptInvite(token: string, inviteId: number): Promise<void> {
@@ -91,6 +95,7 @@ export async function apiAcceptInvite(token: string, inviteId: number): Promise<
     const json = await res.json().catch(() => ({}));
     throw new Error((json as { detail?: string }).detail ?? "Failed to accept invite");
   }
+  trackForumJoined();
 }
 
 export async function apiRejectInvite(token: string, inviteId: number): Promise<void> {

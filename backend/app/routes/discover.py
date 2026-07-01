@@ -179,9 +179,6 @@ def discover_people(
     if not user_domains:
         return []
 
-    # Load current user's own completed answers (needed for why_matched)
-    current_domain_answers = _load_completed_domains(current_user.id, user_domains, db) or {}
-
     candidates = (
         db.query(User)
         .filter(
@@ -190,6 +187,33 @@ def discover_people(
         )
         .all()
     )
+
+    # Batch-load every onboarding row for the current user + all candidates in a
+    # SINGLE query, grouped by user id. This replaces the previous N+1 pattern
+    # (one UserOnboarding query per candidate) with one query total.
+    onboarding_ids = [current_user.id, *(c.id for c in candidates)]
+    rows_by_user: dict[int, dict[str, UserOnboarding]] = {}
+    if onboarding_ids:
+        for row in (
+            db.query(UserOnboarding)
+            .filter(UserOnboarding.id.in_(onboarding_ids))
+            .all()
+        ):
+            rows_by_user.setdefault(row.id, {})[row.domain] = row
+
+    def _completed_for(user_id: int, domains: list[str]) -> Optional[dict[str, dict[str, str]]]:
+        """In-memory equivalent of _load_completed_domains using the batched rows."""
+        row_map = rows_by_user.get(user_id, {})
+        out: dict[str, dict[str, str]] = {}
+        for domain in domains:
+            row = row_map.get(domain)
+            if not row or not _row_is_complete(row):
+                return None  # any incomplete domain disqualifies the whole user
+            out[domain] = _row_to_answers(row, domain)
+        return out
+
+    # Current user's own completed answers (needed for why_matched)
+    current_domain_answers = _completed_for(current_user.id, user_domains) or {}
 
     result: list[dict[str, Any]] = []
 
@@ -200,7 +224,7 @@ def discover_people(
 
         # Gate: every one of the candidate's domains must have complete answers
         # in user_onboarding. If any domain is missing or partial, skip entirely.
-        candidate_answers = _load_completed_domains(candidate.id, candidate_domains, db)
+        candidate_answers = _completed_for(candidate.id, candidate_domains)
         if candidate_answers is None:
             continue
 

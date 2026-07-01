@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Background from "@/components/ui/Background";
 import WelcomeNavbar from "@/components/WelcomeNavbar";
 import PersonCard from "@/components/PersonCard";
-import AddToForumModal from "@/components/AddToForumModal";
-import ProfileModal from "@/components/ProfileModal";
+// On-demand modals — code-split so they're not in the initial /welcome bundle.
+const AddToForumModal = dynamic(() => import("@/components/AddToForumModal"), { ssr: false });
+const ProfileModal = dynamic(() => import("@/components/ProfileModal"), { ssr: false });
 import { C, DISPLAY, SANS, SCRIPT } from "@/lib/constants";
 import { getToken, apiGetMe, getCachedUser } from "@/lib/auth";
 import type { UserProfile } from "@/lib/auth";
@@ -39,37 +41,43 @@ export default function WelcomePage() {
     const token = getToken();
     if (!token) { router.replace("/login"); return; }
 
+    // Onboarding is complete only if the flag is set AND every selected domain
+    // has answers saved (catches partial-onboarding users).
+    const isComplete = (u: UserProfile) => {
+      const answers = u.onboarding_answers as Record<string, unknown>;
+      return u.onboarding_completed && u.interested_domains.every(
+        d => answers[d] && typeof answers[d] === "object" && Object.keys(answers[d] as object).length > 0
+      );
+    };
+
+    const loadPanels = () => Promise.all([
+      apiDiscoverPeople(token),
+      apiGetInvites(token),
+      apiGetMyForums(token),
+    ]);
+
     // Instant paint from the last known profile; apiGetMe below revalidates.
+    // When the cache already says onboarding is complete (the common case),
+    // start the panel fetches NOW — in parallel with /auth/me — so the people
+    // grid loads a round-trip sooner instead of waiting for /auth/me first.
     const cached = getCachedUser();
-    if (cached && cached.onboarding_completed) setUser(cached);
+    let panelsPromise: ReturnType<typeof loadPanels> | null = null;
+    if (cached && isComplete(cached)) {
+      setUser(cached);
+      panelsPromise = loadPanels();
+    }
 
     apiGetMe(token)
       .then(async u => {
-        // Block entry if onboarding flag is not set
-        if (!u.onboarding_completed) {
-          router.replace("/home");
-          return;
-        }
-
-        // Secondary guard: every selected domain must have answers saved.
-        // Catches users whose onboarding_completed was set with partial data
-        // (e.g. Shashank who answered only 1 of his multiple selected domains).
-        const answers = u.onboarding_answers as Record<string, unknown>;
-        const allAnswered = u.interested_domains.every(
-          d => answers[d] && typeof answers[d] === "object" && Object.keys(answers[d] as object).length > 0
-        );
-        if (!allAnswered) {
+        // Block entry (redirect to onboarding) unless fully complete.
+        if (!isComplete(u)) {
           router.replace("/home");
           return;
         }
 
         setUser(u);
 
-        const [p, inv, f] = await Promise.all([
-          apiDiscoverPeople(token),
-          apiGetInvites(token),
-          apiGetMyForums(token),
-        ]);
+        const [p, inv, f] = await (panelsPromise ?? loadPanels());
         setPeople(p);
         setInvites(inv);
         setForums(f);
@@ -194,11 +202,12 @@ export default function WelcomePage() {
               </div>
             )}
 
-            {/* People grid */}
+            {/* People grid — masonry via CSS columns so cards pack
+                upward and never leave gaps under shorter cards */}
             {!loadingPeople && people.length > 0 && (
               <div
                 style={{
-                  columns: "2 420px",
+                  columnWidth: "420px",
                   columnGap: "clamp(1rem, 2vw, 1.5rem)",
                 }}
               >

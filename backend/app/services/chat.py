@@ -30,7 +30,7 @@ REPLY_PREVIEW_LEN = 120
 def _attachment_info(att: ForumAttachment) -> AttachmentInfo:
     return AttachmentInfo(
         id=att.id,
-        url=f"/uploads/{att.stored_path}",
+        url=att.secure_url,  # absolute https Cloudinary link, served directly
         filename=att.filename,
         content_type=att.content_type,
         size_bytes=att.size_bytes,
@@ -372,7 +372,8 @@ def save_attachment(
     forum_id: int,
     uploader_id: int,
     filename: str,
-    stored_path: str,
+    cloudinary_public_id: str,
+    secure_url: str,
     content_type: str,
     size_bytes: int,
 ) -> AttachmentInfo:
@@ -380,7 +381,8 @@ def save_attachment(
         forum_id=forum_id,
         uploader_id=uploader_id,
         filename=filename,
-        stored_path=stored_path,
+        cloudinary_public_id=cloudinary_public_id,
+        secure_url=secure_url,
         content_type=content_type,
         size_bytes=size_bytes,
     )

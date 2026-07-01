@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { motion } from "motion/react";
 import { C, SANS, DISPLAY, SCRIPT } from "@/lib/constants";
 import type { DiscoveredPerson } from "@/lib/discover";
@@ -13,7 +13,7 @@ interface Props {
   index: number;
 }
 
-export default function PersonCard({ person, onAddToForum, onViewProfile, index }: Props) {
+function PersonCard({ person, onAddToForum, onViewProfile, index }: Props) {
   const [hovered, setHovered] = useState(false);
 
   const primaryMatch = person.matched_domains[0];
@@ -283,3 +283,8 @@ export default function PersonCard({ person, onAddToForum, onViewProfile, index 
     </motion.div>
   );
 }
+
+// Memoized: the /welcome people grid re-renders whenever a modal opens
+// (forumTarget/profileTarget state). Card props are stable (person, index,
+// stable setState callbacks), so every unchanged card skips re-render.
+export default memo(PersonCard);

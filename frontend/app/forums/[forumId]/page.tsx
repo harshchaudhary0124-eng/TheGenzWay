@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "motion/react";
 import { C, SANS } from "@/lib/constants";
 import { getToken, getCachedUser, apiGetMe, type UserProfile } from "@/lib/auth";
@@ -18,8 +19,9 @@ import ForumTopBar from "@/components/forum/ForumTopBar";
 import ForumSidebar from "@/components/forum/ForumSidebar";
 import MessageList from "@/components/forum/MessageList";
 import MessageComposer from "@/components/forum/MessageComposer";
-import SearchPanel from "@/components/forum/SearchPanel";
-import ForumSettingsModal from "@/components/forum/ForumSettingsModal";
+// On-demand panels — code-split so they're not in the initial forum bundle.
+const SearchPanel = dynamic(() => import("@/components/forum/SearchPanel"), { ssr: false });
+const ForumSettingsModal = dynamic(() => import("@/components/forum/ForumSettingsModal"), { ssr: false });
 
 const PAGE_SIZE = 30;
 
@@ -239,7 +241,10 @@ export default function ForumPage() {
       }
       setReplyTo(null);
     },
-    [me, forumId, replyTo, socket],
+    // Depend on the individually-stable socket method, not the whole `socket`
+    // object (which is a fresh literal every render) — keeps this handler stable
+    // so MessageList/MessageItem memoization holds across renders.
+    [me, forumId, replyTo, socket.sendMessage],
   );
 
   const handleReact = useCallback(
@@ -265,7 +270,7 @@ export default function ForumPage() {
       );
       socket.reactMessage(id, emoji);
     },
-    [me, socket],
+    [me, socket.reactMessage],
   );
 
   const jumpToMessage = useCallback(
@@ -291,7 +296,7 @@ export default function ForumPage() {
       );
       socket.editMessage(id, content);
     },
-    [socket],
+    [socket.editMessage],
   );
 
   const handleDelete = useCallback(
@@ -301,7 +306,7 @@ export default function ForumPage() {
       );
       socket.deleteMessage(id);
     },
-    [socket],
+    [socket.deleteMessage],
   );
 
   const loadMore = useCallback(async () => {

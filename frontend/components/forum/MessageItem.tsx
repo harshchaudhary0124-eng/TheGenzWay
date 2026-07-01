@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { C, SANS } from "@/lib/constants";
 import { renderMarkdown } from "@/lib/markdown";
@@ -73,7 +73,7 @@ function AttachmentView({ a }: { a: AttachmentInfo }) {
   );
 }
 
-export default function MessageItem({
+function MessageItem({
   message,
   isOwn,
   currentUserId,
@@ -304,6 +304,11 @@ export default function MessageItem({
     </div>
   );
 }
+
+// Memoised: the chat list re-renders on every new message / typing / presence
+// event. Parent callbacks are wrapped in useCallback, so an unchanged message
+// row skips re-rendering entirely.
+export default memo(MessageItem);
 
 function linkBtn(color: string): React.CSSProperties {
   return { background: "none", border: "none", color, cursor: "pointer", fontSize: "0.68rem", padding: 0 };

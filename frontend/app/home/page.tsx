@@ -34,10 +34,15 @@ export default function HomePage() {
       );
     };
 
-    // Instant paint from cache: if the user still needs onboarding, render it
-    // immediately instead of waiting on the network round-trip.
+    // Decide instantly from the cached profile so navigation never blocks on a
+    // round-trip: already-onboarded users bounce straight to /welcome; users who
+    // still need onboarding render it immediately. apiGetMe still revalidates.
     const cached = getCachedUser();
-    if (cached && !isComplete(cached)) {
+    if (cached && isComplete(cached)) {
+      router.replace("/welcome");
+      return;
+    }
+    if (cached) {
       setUser(cached);
       setLoading(false);
     }

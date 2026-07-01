@@ -405,7 +405,7 @@ export default function AboutPage() {
               className="flex flex-col gap-4"
             >
               <a
-                href="mailto:hello@thegenzway.com"
+                href="mailto:thegenzdoes@gmail.com"
                 className="inline-flex items-center gap-3 px-8 py-4 text-sm font-semibold tracking-widest uppercase transition-all duration-300 hover:gap-5"
                 style={{
                   backgroundColor: C.orange,
@@ -418,10 +418,15 @@ export default function AboutPage() {
               </a>
 
               <div className="flex flex-wrap gap-3 mt-1">
-                {["X (Twitter)", "LinkedIn"].map((platform) => (
+                {[
+                  { label: "X (Twitter)", href: "https://x.com/TheWayGenzdoes" },
+                  { label: "Instagram", href: "https://instagram.com/thegenzwayy" },
+                ].map((platform) => (
                   <a
-                    key={platform}
-                    href="#"
+                    key={platform.label}
+                    href={platform.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="px-4 py-2 text-xs uppercase tracking-wider transition-colors duration-200"
                     style={{
                       color: C.muted,
@@ -435,7 +440,7 @@ export default function AboutPage() {
                       (e.currentTarget as HTMLAnchorElement).style.color = C.muted;
                     }}
                   >
-                    {platform}
+                    {platform.label}
                   </a>
                 ))}
               </div>

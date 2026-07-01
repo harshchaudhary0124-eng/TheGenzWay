@@ -207,7 +207,7 @@ Each section component manages its own **ambient glow divs** (animated `radial-g
 ## Backend Architecture Rules
 
 - Framework: FastAPI. Single entrypoint: `backend/app/main.py`.
-- Settings via pydantic-settings in `backend/app/config.py`. Reads from `.env`. Default DB is SQLite (`genzway.db`) for local dev; production target is PostgreSQL.
+- Settings via pydantic-settings in `backend/app/config.py`. Reads from `.env`. The database is **PostgreSQL only** (Neon); `DATABASE_URL` is required and validated. Schema is managed exclusively by Alembic (`backend/alembic/`).
 - CORS is configured for `http://localhost:3000` only.
 - When adding routes: create an `APIRouter` in `backend/app/routes/<domain>.py`, register it in `main.py` with a prefix.
 - SQLAlchemy models go in `backend/app/models/`. Pydantic schemas (request/response) go in `backend/app/schemas/`. Business logic goes in `backend/app/services/`.

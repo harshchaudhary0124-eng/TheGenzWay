@@ -1,6 +1,7 @@
+import logging
 import re
 import secrets
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -10,8 +11,11 @@ from ..schemas.auth import (
     RegisterRequest, LoginRequest, OnboardingRequest,
     TokenResponse, UserResponse, OnboardingProfileResponse,
 )
+from ..security import limiter, LOGIN_RATE_LIMIT, REGISTER_RATE_LIMIT
 from ..services.auth import hash_password, verify_password, create_access_token, decode_access_token
 from ..services.sync import sync_onboarding_rows
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 _bearer = HTTPBearer()
@@ -28,6 +32,8 @@ def get_current_user(
 ) -> User:
     user_id = decode_access_token(creds.credentials)
     if not user_id:
+        # Auth failure — log the event, never the token itself.
+        logger.warning("Authentication failed: invalid or expired token")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     user = db.get(User, user_id)
     if not user:
@@ -36,15 +42,15 @@ def get_current_user(
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    import traceback, sys
+@limiter.limit(REGISTER_RATE_LIMIT)
+def register(request: Request, body: RegisterRequest, db: Session = Depends(get_db)):
     try:
         return _register_impl(body, db)
     except HTTPException:
         raise
-    except BaseException as exc:
-        traceback.print_exc(file=sys.stderr)
-        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc
+    except Exception:
+        logger.exception("Registration failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 def _register_impl(body: RegisterRequest, db: Session):
     if db.query(User).filter(User.email == body.email).first():
@@ -71,18 +77,20 @@ def _register_impl(body: RegisterRequest, db: Session):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(get_db)):
-    import traceback, sys
+@limiter.limit(LOGIN_RATE_LIMIT)
+def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     try:
         user = db.query(User).filter(User.email == body.email).first()
         if not user or not verify_password(body.password, user.hashed_password):
+            # Log the failure for abuse monitoring — never log the password.
+            logger.warning("Authentication failed: invalid email or password")
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
         return TokenResponse(access_token=create_access_token(user.id))
     except HTTPException:
         raise
-    except BaseException as exc:
-        traceback.print_exc(file=sys.stderr)
-        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc
+    except Exception:
+        logger.exception("Login failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/me", response_model=UserResponse)
@@ -96,7 +104,6 @@ def complete_onboarding(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    import traceback, sys
     try:
         required_domains: list[str] = current_user.interested_domains or []
         submitted_map = {item.domain: item.answers for item in body.domains_data}
@@ -142,9 +149,9 @@ def complete_onboarding(
         return current_user
     except HTTPException:
         raise
-    except Exception as exc:
-        traceback.print_exc(file=sys.stderr)
-        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc
+    except Exception:
+        logger.exception("Onboarding submission failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/onboarding-profile", response_model=OnboardingProfileResponse)
@@ -171,10 +178,9 @@ def sync_onboarding(
     Back-fills user_onboarding rows for every user who has onboarding_completed=True
     but whose per-domain rows are missing or out of date.  Safe to call multiple times.
     """
-    import traceback, sys
     try:
         count = sync_onboarding_rows(db)
         return {"synced_rows": count}
-    except Exception as exc:
-        traceback.print_exc(file=sys.stderr)
-        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {exc}") from exc
+    except Exception:
+        logger.exception("Onboarding sync failed")
+        raise HTTPException(status_code=500, detail="Internal server error")

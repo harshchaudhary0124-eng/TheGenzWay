@@ -1,3 +1,5 @@
+import { trackRegistration, trackLogin, trackOnboardingCompleted } from "@/lib/analytics";
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 export const TOKEN_KEY = "tgw_token";
@@ -34,6 +36,7 @@ export async function apiRegister(data: {
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Registration failed");
+  trackRegistration();
   return json as TokenPayload;
 }
 
@@ -45,6 +48,7 @@ export async function apiLogin(email: string, password: string): Promise<TokenPa
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Login failed");
+  trackLogin();
   return json as TokenPayload;
 }
 
@@ -113,5 +117,6 @@ export async function apiSaveOnboarding(
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Failed to save onboarding");
+  trackOnboardingCompleted();
   return json as UserProfile;
 }

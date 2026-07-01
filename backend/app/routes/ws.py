@@ -7,19 +7,25 @@ DB work is sync SQLAlchemy; it's run in a threadpool so the event loop isn't
 blocked, and each call uses its own short-lived session (sessions are not safe
 to hold across awaits).
 """
+import logging
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.concurrency import run_in_threadpool
 
 from ..database import SessionLocal
 from ..models.user import User
+from ..security import ws_connection_allowed
 from ..services.auth import decode_access_token
 from ..services.forum_access import require_membership
 from ..services import chat
 from ..services.ws_manager import manager, Connection
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["forum-chat-ws"])
 
 WS_POLICY_VIOLATION = 1008
+WS_TRY_AGAIN_LATER = 1013
 
 
 # ── threadpool DB helpers (each opens + closes its own session) ──────────────
@@ -89,6 +95,12 @@ async def _broadcast_presence(forum_id: int) -> None:
 
 @router.websocket("/ws/forums/{forum_id}")
 async def forum_chat(websocket: WebSocket, forum_id: int):
+    # Throttle handshakes per client IP before doing any auth/DB work.
+    client_ip = websocket.client.host if websocket.client else "unknown"
+    if not ws_connection_allowed(client_ip):
+        await websocket.close(code=WS_TRY_AGAIN_LATER)
+        return
+
     token = websocket.query_params.get("token")
     user_id = decode_access_token(token) if token else None
     if not user_id:
@@ -186,6 +198,10 @@ async def forum_chat(websocket: WebSocket, forum_id: int):
 
     except WebSocketDisconnect:
         pass
+    except Exception:
+        # Unexpected WS error — log it (no message payloads / tokens) so the
+        # failure is observable; the connection is still cleaned up below.
+        logger.exception("WebSocket error on forum %s", forum_id)
     finally:
         manager.disconnect(conn)
         await _broadcast_presence(forum_id)

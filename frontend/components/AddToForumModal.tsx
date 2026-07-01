@@ -22,7 +22,6 @@ export default function AddToForumModal({ target, myForums, onClose, onSuccess }
   const [selectedForumId, setSelectedForumId] = useState<number | null>(null);
   const [newForumName, setNewForumName] = useState("");
   const [newForumContext, setNewForumContext] = useState("");
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
@@ -30,31 +29,32 @@ export default function AddToForumModal({ target, myForums, onClose, onSuccess }
     const token = getToken();
     if (!token) return;
 
+    // Validate locally first so we never show a false confirmation.
+    if (step === "existing" && !selectedForumId) { setError("Select a forum first"); return; }
+    if (step === "new" && !newForumName.trim()) { setError("Forum name is required"); return; }
+
+    const payload =
+      step === "existing"
+        ? { recipient_id: target.id, forum_id: selectedForumId!, context: newForumContext || undefined }
+        : {
+            recipient_id: target.id,
+            forum_name: newForumName.trim(),
+            forum_domain: target.matched_domains[0]?.domain,
+            context: newForumContext || undefined,
+          };
+
+    // Optimistic: confirm the action immediately — the request runs in the
+    // background and the modal closes the moment the server acknowledges
+    // (no fixed delay). On failure we roll back to the form with the error.
     setError(null);
-    setSending(true);
+    setDone(true);
     try {
-      if (step === "existing") {
-        if (!selectedForumId) { setError("Select a forum first"); setSending(false); return; }
-        await apiSendInvite(token, {
-          recipient_id: target.id,
-          forum_id: selectedForumId,
-          context: newForumContext || undefined,
-        });
-      } else {
-        if (!newForumName.trim()) { setError("Forum name is required"); setSending(false); return; }
-        await apiSendInvite(token, {
-          recipient_id: target.id,
-          forum_name: newForumName.trim(),
-          forum_domain: target.matched_domains[0]?.domain,
-          context: newForumContext || undefined,
-        });
-      }
-      setDone(true);
-      setTimeout(() => { onSuccess(); onClose(); }, 1400);
+      await apiSendInvite(token, payload);
+      onSuccess();
+      onClose();
     } catch (err) {
+      setDone(false);
       setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setSending(false);
     }
   }
 
@@ -269,22 +269,22 @@ export default function AddToForumModal({ target, myForums, onClose, onSuccess }
 
               <button
                 onClick={handleSend}
-                disabled={sending || !selectedForumId}
+                disabled={!selectedForumId}
                 style={{
                   padding: "11px",
-                  background: sending || !selectedForumId ? "rgba(255,91,46,0.3)" : C.orange,
+                  background: !selectedForumId ? "rgba(255,91,46,0.3)" : C.orange,
                   border: "none",
                   color: C.bg,
                   fontSize: "0.74rem",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   fontWeight: 700,
-                  cursor: sending || !selectedForumId ? "not-allowed" : "pointer",
+                  cursor: !selectedForumId ? "not-allowed" : "pointer",
                   transition: "all 0.15s ease",
                   ...SANS,
                 }}
               >
-                {sending ? "Sending..." : "Send Invite"}
+                Send Invite
               </button>
             </div>
           )}
@@ -326,22 +326,21 @@ export default function AddToForumModal({ target, myForums, onClose, onSuccess }
 
               <button
                 onClick={handleSend}
-                disabled={sending}
                 style={{
                   padding: "11px",
-                  background: sending ? "rgba(255,91,46,0.3)" : C.orange,
+                  background: C.orange,
                   border: "none",
                   color: C.bg,
                   fontSize: "0.74rem",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   fontWeight: 700,
-                  cursor: sending ? "not-allowed" : "pointer",
+                  cursor: "pointer",
                   transition: "all 0.15s ease",
                   ...SANS,
                 }}
               >
-                {sending ? "Creating & Sending..." : "Create Forum & Send Invite"}
+                Create Forum & Send Invite
               </button>
             </div>
           )}

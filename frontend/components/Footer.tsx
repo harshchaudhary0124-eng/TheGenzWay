@@ -41,14 +41,20 @@ export default function Footer() {
           </div>
 
           <div className="grid grid-cols-2 gap-x-12 gap-y-3">
-            {["About", "Contact", "X (Twitter)", "LinkedIn"].map((l) => (
+            {[
+              { label: "About", href: "/about", external: false },
+              { label: "Community", href: "/community", external: false },
+              { label: "X (Twitter)", href: "https://x.com/TheWayGenzdoes", external: true },
+              { label: "Instagram", href: "https://instagram.com/thegenzwayy", external: true },
+            ].map((l) => (
               <a
-                key={l}
-                href="#"
+                key={l.label}
+                href={l.href}
+                {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 className="text-xs uppercase tracking-wider transition-opacity hover:opacity-80"
                 style={{ color: C.muted }}
               >
-                {l}
+                {l.label}
               </a>
             ))}
           </div>

@@ -1,3 +1,5 @@
+import { trackForumJoined } from "@/lib/analytics";
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 function authHeaders(token: string) {
@@ -21,7 +23,7 @@ export type ReplyPreview = {
 
 export type AttachmentInfo = {
   id: number;
-  url: string; // /uploads-relative; resolve with attachmentUrl()
+  url: string; // absolute https Cloudinary URL; resolve with attachmentUrl()
   filename: string;
   content_type: string;
   size_bytes: number;
@@ -228,5 +230,6 @@ export async function apiJoinForum(token: string, joinToken: string): Promise<nu
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { detail?: string }).detail ?? "Invalid invite link");
+  trackForumJoined();
   return (json as { forum_id: number }).forum_id;
 }

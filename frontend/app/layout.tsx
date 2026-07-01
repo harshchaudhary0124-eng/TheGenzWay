@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AnalyticsProvider from "@/components/Analytics";
+
+const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 export const metadata: Metadata = {
+  // metadataBase makes OG/canonical URLs absolute in production; omitted (and
+  // harmless) when NEXT_PUBLIC_APP_URL isn't set locally.
+  metadataBase: appUrl ? new URL(appUrl) : undefined,
   title: "The GenZ Way",
   description: "Build. Connect. Ship. Repeat.",
 };
@@ -21,7 +27,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AnalyticsProvider />
+      </body>
     </html>
   );
 }

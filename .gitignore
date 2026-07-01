@@ -46,9 +46,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# SQLite dev database
-*.db
-*.sqlite
-
-# Uploaded forum attachments (local-disk storage)
+# Legacy local-disk upload dir (media now lives in Cloudinary, not on disk).
+# Kept ignored so any pre-migration leftovers are never committed.
 backend/uploads/
+
+# Playwright test artifacts (regenerated on every run — never commit)
+frontend/test-results/
+frontend/playwright-report/

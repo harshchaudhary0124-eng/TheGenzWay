@@ -22,7 +22,9 @@ interface Props {
 export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Props) {
   const router = useRouter();
   const [panel, setPanel] = useState<"invites" | "forums" | null>(null);
-  const [acting, setActing] = useState<number | null>(null);
+  // Invites optimistically hidden the instant Accept/Reject is clicked.
+  const [hiddenInvites, setHiddenInvites] = useState<Set<number>>(new Set());
+  const visibleInvites = invites.filter(i => !hiddenInvites.has(i.id));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [senderProfile, setSenderProfile] = useState<ProfileData | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -42,29 +44,25 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
     router.replace("/login");
   }
 
-  async function handleAccept(inviteId: number) {
+  // Optimistic: hide the invite immediately, run the request in the background,
+  // then refresh. On failure, un-hide so the invite reappears.
+  function actOnInvite(inviteId: number, action: (t: string, id: number) => Promise<void>) {
     const token = getToken();
     if (!token) return;
-    setActing(inviteId);
-    try {
-      await apiAcceptInvite(token, inviteId);
-      onRefresh();
-    } finally {
-      setActing(null);
-    }
+    setHiddenInvites(h => new Set(h).add(inviteId));
+    action(token, inviteId)
+      .then(() => onRefresh())
+      .catch(() => {
+        setHiddenInvites(h => {
+          const next = new Set(h);
+          next.delete(inviteId);
+          return next;
+        });
+      });
   }
 
-  async function handleReject(inviteId: number) {
-    const token = getToken();
-    if (!token) return;
-    setActing(inviteId);
-    try {
-      await apiRejectInvite(token, inviteId);
-      onRefresh();
-    } finally {
-      setActing(null);
-    }
-  }
+  const handleAccept = (inviteId: number) => actOnInvite(inviteId, apiAcceptInvite);
+  const handleReject = (inviteId: number) => actOnInvite(inviteId, apiRejectInvite);
 
   const firstName = user.full_name.split(" ")[0];
 
@@ -213,7 +211,7 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
           >
             <span style={{ fontSize: "1rem" }}>💌</span>
             <span>Invites</span>
-            {invites.length > 0 && (
+            {visibleInvites.length > 0 && (
               <span
                 style={{
                   position: "absolute",
@@ -231,7 +229,7 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                   justifyContent: "center",
                 }}
               >
-                {invites.length}
+                {visibleInvites.length}
               </span>
             )}
           </button>
@@ -272,7 +270,7 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                   Discussion Invites
                 </div>
 
-                {invites.length === 0 ? (
+                {visibleInvites.length === 0 ? (
                   <div
                     style={{
                       padding: "28px 18px",
@@ -284,7 +282,7 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                     No pending invites
                   </div>
                 ) : (
-                  invites.map(invite => (
+                  visibleInvites.map(invite => (
                     <div
                       key={invite.id}
                       style={{
@@ -343,7 +341,6 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
 
                       <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
                         <button
-                          disabled={acting === invite.id}
                           onClick={() => handleAccept(invite.id)}
                           style={{
                             flex: 1,
@@ -354,15 +351,13 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                             fontSize: "0.7rem",
                             letterSpacing: "0.08em",
                             textTransform: "uppercase",
-                            cursor: acting === invite.id ? "not-allowed" : "pointer",
-                            opacity: acting === invite.id ? 0.5 : 1,
+                            cursor: "pointer",
                             transition: "all 0.15s ease",
                           }}
                         >
                           Accept
                         </button>
                         <button
-                          disabled={acting === invite.id}
                           onClick={() => handleReject(invite.id)}
                           style={{
                             flex: 1,
@@ -373,8 +368,7 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                             fontSize: "0.7rem",
                             letterSpacing: "0.08em",
                             textTransform: "uppercase",
-                            cursor: acting === invite.id ? "not-allowed" : "pointer",
-                            opacity: acting === invite.id ? 0.5 : 1,
+                            cursor: "pointer",
                             transition: "all 0.15s ease",
                           }}
                         >
@@ -443,7 +437,10 @@ export default function WelcomeNavbar({ user, invites, forums, onRefresh }: Prop
                         cursor: "pointer",
                         transition: "background 0.15s ease",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                        router.prefetch(`/forums/${forum.id}`);
+                      }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       <p style={{ color: C.cream, fontSize: "0.84rem", fontWeight: 600, marginBottom: "3px" }}>

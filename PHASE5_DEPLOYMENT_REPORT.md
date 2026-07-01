@@ -2,6 +2,14 @@
 
 Date: 2026-06-30
 
+> **Update (2026-07-01): backend deploy target migrated Railway → Render.**
+> `backend/railway.json` and `backend/Procfile` were **removed** and replaced by
+> `render.yaml` (Render Blueprint) at the repo root. The start command,
+> `/health` healthcheck, `$PORT` binding, Neon, Cloudinary, Alembic, logging,
+> monitoring, WebSockets and CORS are all unchanged. Mentions of "Railway" below
+> are **historical** — the current backend host is **Render**. See
+> `RENDER_DEPLOYMENT.md` and `RENDER_MIGRATION_REPORT.md`.
+
 Phase 5 made The GenZ Way production-deployable and operationally observable
 **without touching the UI, routes, auth flow, onboarding flow, forum system, or
 the database schema.** Every change is additive: configuration, health checks,
@@ -13,7 +21,7 @@ production-secret enforcement, Cloudinary-only media, Neon connection pooling,
 rate limiting, generic 500s with no stack-trace leakage). So much of "deployment
 readiness" was **verified rather than newly built**; the genuinely new work is
 the health endpoint, structured logging, Sentry, analytics, GZip, the
-Permissions-Policy header, the deploy config (Railway/Vercel), and the docs.
+Permissions-Policy header, the deploy config (Render/Vercel), and the docs.
 
 ---
 
@@ -24,14 +32,14 @@ Permissions-Policy header, the deploy config (Railway/Vercel), and the docs.
 | `backend/app/routes/health.py` | `GET /health` — DB + Cloudinary checks, version, uptime; **200 only when healthy, 503 otherwise**. |
 | `backend/app/logging_config.py` | Structured logging (JSON in prod) + secret-redaction filter. |
 | `backend/app/observability.py` | Sentry init (production + DSN only) with PII/header/query scrubbing. |
-| `backend/Procfile` | Railway/Heroku-style start: migrate then serve. |
-| `backend/railway.json` | Railway build/deploy config: start command, `/health` healthcheck, restart policy. |
+| `backend/Procfile` | _(removed 2026-07-01 — superseded by `render.yaml`.)_ Was: Procfile-style start: migrate then serve. |
+| `backend/railway.json` | _(removed 2026-07-01 — superseded by `render.yaml`.)_ Was: Railway build/deploy config: start command, `/health` healthcheck, restart policy. |
 | `frontend/lib/analytics.ts` | Privacy-first PostHog wrapper + typed anonymous event helpers. |
 | `frontend/components/Analytics.tsx` | Mounts Vercel Analytics + initialises PostHog (renders nothing). |
 | `frontend/instrumentation.ts` | Server/edge Sentry init + `onRequestError` (prod + DSN only). |
 | `frontend/instrumentation-client.ts` | Browser Sentry init (prod + DSN only). |
 | `frontend/.env.example` | Frontend env template (placeholders only). |
-| `DEPLOYMENT_CHECKLIST.md` | End-to-end deploy runbook (Neon, Cloudinary, Railway, Vercel, DNS, SSL, migrations, rollback). |
+| `DEPLOYMENT_CHECKLIST.md` | End-to-end deploy runbook (Neon, Cloudinary, Render, Vercel, DNS, SSL, migrations, rollback). |
 | `MONITORING_GUIDE.md` | Health, logging, Sentry, UptimeRobot, Better Stack, PostHog, alerts. |
 | `PHASE5_DEPLOYMENT_REPORT.md` | This report. |
 
@@ -71,8 +79,8 @@ Permissions-Policy header, the deploy config (Railway/Vercel), and the docs.
   (all optional except the first two for production).
 - **No secrets committed.** `.env` / `.env.local` remain gitignored; only
   `*.env.example` placeholders are tracked.
-- **Deploy config:** `railway.json` + `Procfile` run `alembic upgrade head`
-  before serving and bind to `$PORT`; healthcheck is `/health`.
+- **Deploy config:** `render.yaml` (Render Blueprint) runs `alembic upgrade head`
+  before serving and binds to `$PORT`; healthcheck is `/health`.
 
 ---
 
@@ -83,7 +91,7 @@ Permissions-Policy header, the deploy config (Railway/Vercel), and the docs.
 - Reports `status`, `timestamp` (UTC), `version`, `environment`,
   `uptime_seconds`, and per-dependency `checks` for `database` and `cloudinary`.
 - **HTTP 200 only when healthy.** Returns **503** when the DB (a hard dependency)
-  is unreachable, so UptimeRobot / Better Stack / Railway alert on real outages.
+  is unreachable, so UptimeRobot / Better Stack / Render alert on real outages.
 - Cloudinary is reported as degraded-not-fatal (the core app still serves).
 - Verified locally: with an unreachable DB the endpoint correctly returns 503 and
   `database.ok = false`.
@@ -154,13 +162,14 @@ Permissions-Policy header, the deploy config (Railway/Vercel), and the docs.
 ## Remaining production recommendations
 
 1. **Rate-limit storage for multi-instance.** `slowapi`/WS limiter use in-process
-   memory. If you scale the backend beyond one Railway instance, point them at
+   memory. If you scale the backend beyond one Render instance, point them at
    Redis so limits are shared.
 2. **Sentry source maps.** Wrap `frontend/next.config.mjs` with `withSentryConfig`
    and set `SENTRY_AUTH_TOKEN` to get de-minified frontend stack traces (left out
    to keep builds credential-free).
-3. **Log retention.** Forward Railway stdout JSON to a drain (Better Stack/Logtail)
-   for long-term search; platform logs are short-lived.
+3. **Log retention.** Forward Render logs to a drain via **Log Streams** (Better
+   Stack/Logtail, Datadog, Papertrail) for long-term search; platform logs are
+   short-lived.
 4. **DB backups before destructive migrations.** Take a Neon branch/snapshot
    before any non-additive migration to guarantee a clean rollback point.
 5. **CORS allowlist hygiene.** Keep `ALLOWED_ORIGINS` to the exact production
@@ -177,9 +186,9 @@ Permissions-Policy header, the deploy config (Railway/Vercel), and the docs.
 **Why 9:** The application is code-complete for production — env-driven config,
 verified security headers + HTTPS/HSTS, a real health endpoint (200/503),
 structured secret-safe logging, opt-in Sentry and privacy-first analytics, GZip,
-a clean warning-free production build, and Railway/Vercel deploy configs plus full
+a clean warning-free production build, and Render/Vercel deploy configs plus full
 runbooks. **Why not 10:** the final point requires *deploy-time* actions outside
-the codebase — provisioning Neon/Cloudinary/Railway/Vercel, setting real secrets,
+the codebase — provisioning Neon/Cloudinary/Render/Vercel, setting real secrets,
 DNS + SSL, and (for true scale) moving rate-limit storage to Redis and enabling
 Sentry source-map upload. Those are documented in `DEPLOYMENT_CHECKLIST.md` and
 the recommendations above.

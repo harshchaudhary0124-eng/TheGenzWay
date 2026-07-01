@@ -1,14 +1,17 @@
 # Deployment Checklist — The GenZ Way
 
 End-to-end checklist for taking The GenZ Way to production:
-**Next.js frontend → Vercel**, **FastAPI backend → Railway**, **PostgreSQL → Neon**,
+**Next.js frontend → Vercel**, **FastAPI backend → Render**, **PostgreSQL → Neon**,
 **media → Cloudinary**. Work top to bottom the first time; the per-section lists
 are reusable for every subsequent deploy.
 
-> Architecture recap: the frontend (Vercel) calls the backend (Railway) over
+> Architecture recap: the frontend (Vercel) calls the backend (Render) over
 > HTTPS using `NEXT_PUBLIC_API_URL`; the WebSocket origin is derived from it
 > automatically (https→wss). Media is uploaded server-side to Cloudinary and
 > served from its CDN. The DB is Neon (PostgreSQL only); schema is Alembic-managed.
+>
+> Render config lives in `render.yaml` (a Render Blueprint) at the repo root.
+> For a focused, step-by-step Render walkthrough see **`RENDER_DEPLOYMENT.md`**.
 
 ---
 
@@ -17,15 +20,15 @@ are reusable for every subsequent deploy.
 Local dev feels slow only because a local backend talks to a distant Neon DB.
 In production, latency is governed almost entirely by **where** you deploy:
 
-- [ ] **Co-locate backend + database in the same region.** Deploy the Railway
+- [ ] **Co-locate backend + database in the same region.** Deploy the Render
       service and create the Neon project in the **same** region so backend↔DB
       round-trips are ~1–5ms. This is the single biggest factor.
 - [ ] **Pick the region closest to your users.** Neon has **no India region**;
       the closest is **Singapore — `aws-ap-southeast-1`** (~50–90ms from India vs
-      ~300ms from US-East). Deploy **both** Railway and Neon in Singapore for an
-      India-focused audience. (Region is fixed at Neon project creation and can't
-      be changed later — choose correctly up front, or migrate via Neon's Import
-      Data Assistant.)
+      ~300ms from US-East). Deploy **both** Render (region: Singapore) and Neon in
+      Singapore for an India-focused audience. (Neon's region is fixed at project
+      creation and can't be changed later — choose correctly up front, or migrate
+      via Neon's Import Data Assistant.)
 - [ ] **Vercel frontend is globally fast automatically** (edge CDN). Nothing to do.
 - [ ] **Prevent Neon cold starts.** Neon's free tier auto-suspends when idle, so
       the first visitor after a quiet period waits a few seconds. Either:
@@ -33,6 +36,10 @@ In production, latency is governed almost entirely by **where** you deploy:
       - Set **`DB_KEEPALIVE_SECONDS=240`** on the backend (a background `SELECT 1`
         keeps the compute warm — but only enable it on a plan with enough compute
         hours, since it keeps the DB always-on).
+- [ ] **Avoid Render's free instance for the live backend.** Free web services
+      sleep after ~15 min idle (cold start on the next request) and do not support
+      WebSockets — use at least the **Starter** instance so chat (`wss`) works and
+      the service stays warm.
 
 With Singapore co-location + cold-starts handled, an Indian user sees instant
 page navigation (client-side, prefetched) and ~50–100ms data actions.
@@ -54,12 +61,12 @@ page navigation (client-side, prefetched) and ~50–100ms data actions.
 
 ## 1. Neon (PostgreSQL) setup
 
-- [ ] Create a Neon project + database (region close to the Railway region).
+- [ ] Create a Neon project + database (region close to the Render region).
 - [ ] Copy the **pooled** connection string (host ends in `-pooler.neon.tech`).
 - [ ] Ensure `?sslmode=require` is present.
 - [ ] (Recommended) Create a separate **test** branch/database for CI — never run
       the test suite against production (it provisions schema and writes rows).
-- [ ] Save the connection string as `DATABASE_URL` (used by Railway in §4).
+- [ ] Save the connection string as `DATABASE_URL` (used by Render in §4).
 
 > The app is PostgreSQL-only and normalizes `postgres://` → `postgresql://`
 > automatically; it refuses to boot on any non-PostgreSQL URL.
@@ -78,7 +85,7 @@ page navigation (client-side, prefetched) and ~50–100ms data actions.
 
 ## 3. Environment variables
 
-### Backend (Railway service variables)
+### Backend (Render service environment variables)
 
 | Variable | Required | Notes |
 | --- | --- | --- |
@@ -104,26 +111,34 @@ page navigation (client-side, prefetched) and ~50–100ms data actions.
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | – | Enables PostHog product events. |
 | `NEXT_PUBLIC_SENTRY_DSN` | – | Enables browser/SSR error monitoring. |
 
-- [ ] All backend variables set in Railway.
+- [ ] All backend variables set in Render (Blueprint prompts for the `sync: false`
+      secrets on first deploy; `ENVIRONMENT`, `APP_VERSION`, `LOG_LEVEL` come from
+      `render.yaml`).
 - [ ] All frontend variables set in Vercel (for the **Production** environment).
 - [ ] `ALLOWED_ORIGINS` (backend) exactly matches the Vercel domain — a mismatch
       breaks CORS and the app appears "dead" in the browser console.
 
 ---
 
-## 4. Railway deployment (backend)
+## 4. Render deployment (backend)
 
-- [ ] New Railway project → **Deploy from GitHub repo**.
-- [ ] Set the service **Root Directory** to `backend/`.
-- [ ] Builder = **Nixpacks** (auto-detects Python via `requirements.txt`).
-      `backend/railway.json` already pins the start command + healthcheck.
-- [ ] Start command (from `railway.json` / `Procfile`):
+Config is declared in **`render.yaml`** (Blueprint) at the repo root — see
+`RENDER_DEPLOYMENT.md` for the full walkthrough. Summary:
+
+- [ ] Render Dashboard → **New → Blueprint** → connect this GitHub repo. Render
+      reads `render.yaml` and creates the `thegenzway-backend` web service.
+- [ ] `render.yaml` already pins: **Root Directory** `backend/`, Python runtime,
+      build `pip install -r requirements.txt`, and the start command
       `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-      — runs DB migrations, then serves on Railway's `$PORT`.
-- [ ] Add all backend env vars (§3).
+      (runs DB migrations, then serves on Render's injected `$PORT`).
+- [ ] **Instance type: Starter or higher** (free sleeps and has no WebSocket
+      support — chat needs `wss`).
+- [ ] When prompted, paste the secret env vars (§3): `DATABASE_URL`, `SECRET_KEY`,
+      `ALLOWED_ORIGINS`, the three `CLOUDINARY_*`, and optional `SENTRY_DSN`.
 - [ ] Deploy. Watch logs for: Alembic `upgrade head` success, then Uvicorn start.
-- [ ] Confirm the healthcheck passes (Railway uses `/health`).
-- [ ] Note the public backend URL (use it for `NEXT_PUBLIC_API_URL`).
+- [ ] Confirm the healthcheck passes (Render polls `healthCheckPath: /health`).
+- [ ] Note the public backend URL (`https://<service>.onrender.com`) — use it for
+      `NEXT_PUBLIC_API_URL`.
 
 ---
 
@@ -142,17 +157,17 @@ page navigation (client-side, prefetched) and ~50–100ms data actions.
 
 - [ ] Frontend: add your apex/`www` domain in Vercel → create the shown
       `A`/`CNAME` records at your registrar.
-- [ ] Backend: add a custom domain (e.g. `api.your-domain.com`) in Railway →
-      add the shown `CNAME`.
+- [ ] Backend: add a custom domain (e.g. `api.your-domain.com`) in Render →
+      Service → **Settings → Custom Domains** → add the shown `CNAME`.
 - [ ] After DNS propagates, update `NEXT_PUBLIC_API_URL` (Vercel) and
-      `ALLOWED_ORIGINS` (Railway) to the final domains and redeploy both.
+      `ALLOWED_ORIGINS` (Render) to the final domains and redeploy both.
 
 ---
 
 ## 7. SSL verification
 
 - [ ] Vercel domain serves over HTTPS with a valid cert (auto-provisioned).
-- [ ] Railway domain serves over HTTPS with a valid cert (auto-provisioned).
+- [ ] Render domain serves over HTTPS with a valid cert (auto-provisioned).
 - [ ] `https://your-domain.com` → no mixed-content warnings (all API/WS calls are
       `https`/`wss`).
 - [ ] Response headers present on API responses: `Strict-Transport-Security`,
@@ -163,7 +178,7 @@ page navigation (client-side, prefetched) and ~50–100ms data actions.
 
 ## 8. Database migration
 
-- [ ] Migrations run automatically on each Railway deploy (`alembic upgrade head`
+- [ ] Migrations run automatically on each Render deploy (`alembic upgrade head`
       in the start command).
 - [ ] To run manually: `cd backend && alembic upgrade head`.
 - [ ] To check current revision: `alembic current`.
@@ -192,8 +207,9 @@ page navigation (client-side, prefetched) and ~50–100ms data actions.
 - [ ] Vercel → Deployments → pick the last good deployment → **Promote to
       Production** (instant rollback).
 
-**Backend (Railway)**
-- [ ] Railway → Deployments → select the previous successful deploy → **Redeploy**.
+**Backend (Render)**
+- [ ] Render → Service → **Events / Deploys** → open the previous successful
+      deploy → **Rollback to this version** (or **Manual Deploy → pick a commit**).
 
 **Database (Neon)** — only if a migration caused the problem:
 - [ ] Downgrade one revision: `cd backend && alembic downgrade -1`.

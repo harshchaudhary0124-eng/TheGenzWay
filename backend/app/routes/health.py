@@ -1,6 +1,6 @@
 """Health & readiness endpoint for uptime/monitoring services.
 
-``GET /health`` is designed for UptimeRobot / Better Stack / Railway probes:
+``GET /health`` is designed for UptimeRobot / Better Stack / Render probes:
 
 * Returns **HTTP 200 only when the service is healthy** (DB reachable). When a
   hard dependency is down it returns **503** so monitors alert instead of seeing

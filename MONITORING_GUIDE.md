@@ -33,8 +33,8 @@ activate when `ENVIRONMENT`/`NEXT_PUBLIC_ENVIRONMENT` is `production`.
   **not** flip the status to 503 (the core app still serves).
 - Unauthenticated, cheap, and `Cache-Control: no-store` — safe to poll frequently.
 - No secrets in the response.
-- Railway is already configured to use `/health` as its deploy healthcheck
-  (`backend/railway.json`).
+- Render is already configured to use `/health` as its deploy healthcheck
+  (`healthCheckPath: /health` in `render.yaml`).
 
 ---
 
@@ -58,12 +58,13 @@ Structured logging is configured in `backend/app/logging_config.py` and wired in
 
 | Environment | Where to read logs |
 | --- | --- |
-| Railway (backend) | Service → **Deployments / Logs** (stdout JSON). Pipe to a drain for retention. |
+| Render (backend) | Service → **Logs** (live stdout JSON) + **Events** for deploys. Pipe to a drain for retention. |
 | Vercel (frontend) | Project → **Logs** (functions/SSR) + **Runtime Logs**. |
 | Local dev | Terminal running `uvicorn` (human-readable) / `npm run dev`. |
 
-> Railway/Vercel only retain recent logs. For long-term retention and search,
-> forward Railway's log stream to Better Stack (Logtail) or a similar drain.
+> Render/Vercel only retain recent logs. For long-term retention and search,
+> forward Render's logs to a drain — Render supports **Log Streams** (Settings →
+> Log Streams) to Better Stack (Logtail), Datadog, Papertrail, etc.
 
 ---
 
@@ -84,8 +85,9 @@ and query strings from every event before it is sent.
 1. Create a Sentry account → create **two** projects: one **Python (FastAPI)**,
    one **Next.js**.
 2. Copy each project's DSN.
-3. **Backend (Railway):** set `SENTRY_DSN=<python-dsn>`, ensure
-   `ENVIRONMENT=production`. Optionally `SENTRY_TRACES_SAMPLE_RATE` (e.g. `0.1`).
+3. **Backend (Render):** set `SENTRY_DSN=<python-dsn>`, ensure
+   `ENVIRONMENT=production` (already set in `render.yaml`). Optionally
+   `SENTRY_TRACES_SAMPLE_RATE` (e.g. `0.1`).
 4. **Frontend (Vercel):** set `NEXT_PUBLIC_SENTRY_DSN=<nextjs-dsn>` and
    `NEXT_PUBLIC_ENVIRONMENT=production`.
 5. Redeploy both. Trigger a test error and confirm it appears in Sentry.
@@ -164,7 +166,7 @@ anonymous product events come from PostHog (`frontend/lib/analytics.ts`).
 | Error spike | Sentry | Alert when a new issue appears or error rate exceeds baseline. |
 | Auth-failure spike | Logs (`Authentication failed`) | Alert on abnormal volume (possible brute force; rate limiting already returns 429). |
 | Upload failures | Logs (`Upload failed`) | Alert on sustained failures (Cloudinary outage / misconfig). |
-| 5xx rate | Railway/Vercel metrics + Sentry | Alert when 5xx share crosses a threshold. |
+| 5xx rate | Render/Vercel metrics + Sentry | Alert when 5xx share crosses a threshold. |
 | DB connections near cap | Neon dashboard | Watch pool usage; tune `pool_size`/`max_overflow` if saturating. |
 | Latency regression | Vercel Analytics (Web Vitals) / `duration_ms` in logs | Investigate sustained p95 increases. |
 

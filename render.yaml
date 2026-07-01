@@ -1,0 +1,51 @@
+# Render Blueprint — The GenZ Way backend (FastAPI)
+# Docs: https://render.com/docs/blueprint-spec
+#
+# One web service: the FastAPI backend. Frontend stays on Vercel and the
+# database stays on Neon (external, not managed here) — this blueprint does not
+# provision a Render database, so the existing Neon PostgreSQL is unchanged.
+#
+# Deploy: Render Dashboard → New → Blueprint → pick this repo. Render reads this
+# file, creates the service, and prompts for the secret env vars marked
+# `sync: false` (values are NOT stored in git).
+services:
+  - type: web
+    name: thegenzway-backend
+    runtime: python
+    # Build + run only inside backend/ (the repo is a monorepo: frontend/ + backend/).
+    rootDir: backend
+    plan: starter            # WebSockets require a paid instance type (not "free").
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    # Run migrations, then serve. Render injects $PORT — bind to it.
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # ── Runtime (fixed values, safe to keep in git) ──────────────────────────
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: ENVIRONMENT
+        value: production
+      - key: APP_VERSION
+        value: "1.0.0"
+      - key: LOG_LEVEL
+        value: INFO
+      # ── Secrets / per-environment (set in the Render dashboard; never in git) ─
+      - key: DATABASE_URL          # Neon pooled string, ?sslmode=require
+        sync: false
+      - key: SECRET_KEY            # python -c "import secrets; print(secrets.token_hex(32))"
+        sync: false
+      - key: ALLOWED_ORIGINS       # e.g. https://your-domain.com,https://www.your-domain.com
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      # ── Optional observability ───────────────────────────────────────────────
+      - key: SENTRY_DSN            # leave unset to disable Sentry
+        sync: false
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0.0"
